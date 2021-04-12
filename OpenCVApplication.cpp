@@ -251,6 +251,56 @@ Mat_<uchar> computeDownBorder(Mat_<uchar> src, int k) {
     return border;
 }
 
+void testComputeUpBorder() {
+	char fname[MAX_PATH] = "Images/cameraman.bmp";
+	Mat_<uchar> src; // matricea sursa
+	src = imread(fname, IMREAD_GRAYSCALE);
+
+	int k = 10;
+	Mat_<uchar> upBorder = computeUpBorder(src, k);
+
+	imshow("opened image", upBorder);
+	waitKey(0);
+}
+
+
+void testComputeRightBorder() {
+	char fname[MAX_PATH] = "Images/cameraman.bmp";
+	Mat_<uchar> src; // matricea sursa
+	src = imread(fname, IMREAD_GRAYSCALE);
+
+	int k = 10;
+	//Mat_<uchar> rightBorder = computeUpBorder(src, k);
+
+	//imshow("opened image", upBorder);
+	waitKey(0);
+}
+	
+void testComputeDownBorder() {
+	char fname[MAX_PATH] = "Images/cameraman.bmp";
+	Mat_<uchar> src; // matricea sursa
+	src = imread(fname, IMREAD_GRAYSCALE);
+
+	int k = 10;
+	Mat_<uchar> downBorder = computeDownBorder(src, k);
+
+	imshow("opened image", downBorder);
+	waitKey(0);
+}
+
+void testComputeLeftBorder() {
+	char fname[MAX_PATH] = "Images/cameraman.bmp";
+	Mat_<uchar> src; // matricea sursa
+	src = imread(fname, IMREAD_GRAYSCALE);
+
+	int k = 10;
+	//Mat_<uchar> leftBorder = computeLeftBorder(src, k);
+
+	//imshow("opened image", leftBorder);
+	waitKey(0);
+}
+
+
 
 int main()
 {
@@ -266,9 +316,9 @@ int main()
 	printf(" 4 - RMSE\n");
 	printf(" 5 - Section image\n");
 	printf(" 6 - Up border \n");
-    printf(" 7 - Right border \n");
+    printf(" 7 - Right border /todo\n");
     printf(" 8 - Down border \n");
-    printf(" 9 - Left border \n");
+    printf(" 9 - Left border /todo\n");
 
     printf(" 0 - Exit\n\n");
 	printf("Option: ");
@@ -284,18 +334,25 @@ int main()
 	case 3:
 		testColor2Gray();
 		break;
-
 	case 4:
 		testRMSE();
 		break;
-
 	case 5:
 		testSectionImage();
 		break;
-		/*case 6:
-            testComputeUpBorder();
+	case 6:
+        testComputeUpBorder();
+        break;
+	case 7:
+		testComputeRightBorder();
+		break;
+	case 8:
+		testComputeDownBorder();
+		break;
+	case 9:
+		testComputeLeftBorder();
+		break;
 
-            break;*/
 
 	}
 	//} 	while (op != 0);
