@@ -3,7 +3,7 @@
 
 #include "stdafx.h"
 #include "common.h"
-#include <math.h> 
+#include <math.h>
 #include <vector>
 #include <iostream>
 
@@ -123,7 +123,7 @@ void testRMSE() {
 
 	// test rmseK
 	const int r = 4, c = 2;
-
+  
 	uchar m1[r][c] = {
 	   { 3, 12},
 	   { 2, 20},
@@ -210,6 +210,104 @@ void testSectionImage()
 	waitKey(0); // asteapta apasarea unei taste
 }
 
+Mat_<uchar> getSection(Mat_<uchar> src, int startRow, int startCol, int height, int width)
+{
+	// se creeaza imaginea cadran de dimensiunea ceruta
+	Mat_<uchar> section = Mat_<uchar>(height, width);
+
+	// se extrage din imaginea sursa cadranul cerut
+	for (int i = startRow; i < startRow + height; ++i) {
+		for (int j = startCol; j < startCol + width; ++j) {
+			section(i - startRow, j - startCol) = src(i, j);
+		}
+	}
+
+	// se returneaza sectiunea extrasa
+	return section;
+}
+
+std::vector<Mat_<uchar>> sectionImage(Mat_<uchar> src) {
+	// se creeaza std::vector-ul de cadrane extrase din imaginea sursa
+	std::vector<Mat_<uchar>> sections = {};
+
+	// se stabilesc dimensiunile
+	int height, width;
+	height = src.rows / 2;
+	width = src.cols / 2;
+
+	// colt stanga-sus
+	Mat_<uchar> section1 = getSection(src, 0, 0, height, width);
+	sections.push_back(section1); // se adauga sectiunea extrasa in std::vector-ul de sectiuni
+
+	// colt dreapta-sus
+	Mat_<uchar> section2 = getSection(src, 0, width, height, width);
+	sections.push_back(section2);
+
+	// colt stanga-jos
+	Mat_<uchar> section3 = getSection(src, height, 0, height, width);
+	sections.push_back(section3);
+
+	// colt dreapta-jos
+	Mat_<uchar> section4 = getSection(src, height, width, height, width);
+	sections.push_back(section4);
+
+	imshow("section1", section1);       // afiseaza sectiunea 1
+	imshow("section2", section2);       // afiseaza sectiunea 2
+	imshow("section3", section3);       // afiseaza sectiunea 3
+	imshow("section4", section4);       // afiseaza sectiunea 4
+
+	return sections;
+}
+
+void testSectionImage()
+{
+	char fname[MAX_PATH];
+	openFileDlg(fname);
+
+	Mat_<uchar> src; // matricea sursa
+	src = imread(fname, IMREAD_GRAYSCALE);
+
+	std::vector<Mat_<uchar>> images = sectionImage(src);
+
+	waitKey(0); // asteapta apasarea unei taste
+}
+
+
+
+Mat_<uchar> computeUpBorder(Mat_<uchar> src, int k) {
+    Mat_<uchar> border = Mat_<uchar>(k, src.cols);
+
+    for (int i = 0; i < k; i++) {
+        for (int j = 0; j < src.cols; j++) {
+            border(i, j) = src(i, j);
+
+        }
+    }
+
+    imshow("opened image", src);
+    imshow("up border", border);
+    waitKey(0);
+    return border;
+}
+
+Mat_<uchar> computeDownBorder(Mat_<uchar> src, int k) {
+    Mat_<uchar> border = Mat_<uchar>(k, src.cols);
+
+    for (int i = src.rows - 1; i >= src.rows - k + 1; i--) {
+        for (int j = 0; j < src.cols; j++) {
+
+            border(src.rows - i, j) = src(i, j);
+
+        }
+    }
+
+    imshow("opened image", src);
+    imshow("down border", border);
+    waitKey(0);
+    return border;
+}
+
+
 int main()
 {
 	int op;
@@ -221,8 +319,14 @@ int main()
 	printf(" 1 - Basic image opening...\n");
 	printf(" 2 - Open BMP images from folder\n");
 	printf(" 3 - Color to Gray\n");
-	printf(" 4 - rmse\n");
-	printf(" 0 - Exit\n\n");
+	printf(" 4 - RMSE\n");
+	printf(" 5 - Section image\n");
+	printf(" 6 - Up border \n");
+    printf(" 7 - Right border \n");
+    printf(" 8 - Down border \n");
+    printf(" 9 - Left border \n");
+
+    printf(" 0 - Exit\n\n");
 	printf("Option: ");
 	scanf("%d", &op);
 	switch (op)
@@ -240,6 +344,14 @@ int main()
 	case 4:
 		testRMSE();
 		break;
+
+	case 5:
+		testSectionImage();
+		break;
+		/*case 6:
+            testComputeUpBorder();
+
+            break;*/
 
 	}
 	//} 	while (op != 0);
