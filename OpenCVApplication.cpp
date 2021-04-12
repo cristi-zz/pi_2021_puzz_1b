@@ -9,6 +9,8 @@
 
 using namespace std;
 
+char fname[MAX_PATH] = "Images/cameraman.bmp";
+
 void testOpenImage()
 {
 	char fname[MAX_PATH];
@@ -25,7 +27,7 @@ void testOpenImagesFld()
 {
 	char folderName[MAX_PATH];
 	if (openFolderDlg(folderName) == 0)
-		return;
+	return;
 	char fname[MAX_PATH];
 	FileGetter fg(folderName, "bmp");
 	while (fg.getNextAbsFile(fname))
@@ -210,6 +212,57 @@ void testSectionImage()
 	waitKey(0); // asteapta apasarea unei taste
 }
 
+
+Mat_<uchar> computeLeftBorder(Mat_<uchar> src, int k) {
+	Mat_<uchar> border = Mat_<uchar>(src.rows, k);
+
+	for (int i = 0; i < src.rows; i++)
+		for (int j = 0; j < k; j++)
+			border(i, j) = src(i, j);
+
+	return border;
+}
+
+Mat_<uchar> computeRightBorder(Mat_<uchar> src, int k) {
+	Mat_<uchar> border = Mat_<uchar>(src.rows, k);
+
+	for (int i = 0; i < src.rows; i++)
+		for (int j = src.cols-1; j >= src.cols-k; j--)
+			border(i, src.cols-1-j) = src(i, j);
+
+	return border;
+}
+
+void show(Mat_<uchar> img) {
+	for (int i = 0; i < img.rows; i++)
+	{
+		for (int j = 0; j < img.cols; j++)
+		{
+			printf("%d ", img(i, j));
+		}
+		printf("  --  \n");
+	}
+}
+
+void testLeftBorder() {
+	Mat_<uchar> img = imread(fname, IMREAD_GRAYSCALE);
+	Mat_<uchar> left = computeLeftBorder(img, 2);
+	
+	show(img);
+	show(left);
+}
+
+void testRightBorder() {
+	Mat_<uchar> img = imread(fname, IMREAD_GRAYSCALE);
+	Mat_<uchar> left = computeRightBorder(img, 2);
+
+	show(img);
+	show(left);
+}
+
+
+
+
 int main()
 {
 	int op;
@@ -221,7 +274,9 @@ int main()
 	printf(" 1 - Basic image opening...\n");
 	printf(" 2 - Open BMP images from folder\n");
 	printf(" 3 - Color to Gray\n");
-	printf(" 4 - rmse\n");
+	printf(" 4 - RMSE\n");
+	printf(" 5 - Test left border\n");
+	printf(" 6 - Test right border\n");
 	printf(" 0 - Exit\n\n");
 	printf("Option: ");
 	scanf("%d", &op);
@@ -240,6 +295,14 @@ int main()
 	case 4:
 		testRMSE();
 		break;
+
+	case 5:
+		testLeftBorder();
+		break;
+	case 6:
+		testRightBorder();
+		break;
+		
 
 	}
 	//} 	while (op != 0);
