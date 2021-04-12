@@ -3,7 +3,7 @@
 
 #include "stdafx.h"
 #include "common.h"
-#include <math.h> 
+#include <math.h>
 #include <vector>
 #include <iostream>
 
@@ -112,7 +112,7 @@ vector<double> computeRMSEK(Mat_<uchar> first, Mat_<uchar> second, int k) {
 
 void testRMSE() {
 
-	
+
 	// test RMSE
 	/*
 	Mat_<uchar> a(1, 4);
@@ -131,7 +131,7 @@ void testRMSE() {
 	//printf("%f ", computeRMSE(a, b));
 
 	// test rmseK
-	
+
 	const int r = 2, c = 4;
 
 	uchar m1[r][c] = {
@@ -216,6 +216,42 @@ void testSectionImage()
 	waitKey(0); // asteapta apasarea unei taste
 }
 
+
+
+Mat_<uchar> computeUpBorder(Mat_<uchar> src, int k) {
+    Mat_<uchar> border = Mat_<uchar>(k, src.cols);
+
+    for (int i = 0; i < k; i++) {
+        for (int j = 0; j < src.cols; j++) {
+            border(i, j) = src(i, j);
+
+        }
+    }
+
+    imshow("opened image", src);
+    imshow("up border", border);
+    waitKey(0);
+    return border;
+}
+
+Mat_<uchar> computeDownBorder(Mat_<uchar> src, int k) {
+    Mat_<uchar> border = Mat_<uchar>(k, src.cols);
+
+    for (int i = src.rows - 1; i >= src.rows - k + 1; i--) {
+        for (int j = 0; j < src.cols; j++) {
+
+            border(src.rows - i, j) = src(i, j);
+
+        }
+    }
+
+    imshow("opened image", src);
+    imshow("down border", border);
+    waitKey(0);
+    return border;
+}
+
+
 int main()
 {
 	int op;
@@ -227,9 +263,14 @@ int main()
 	printf(" 1 - Basic image opening...\n");
 	printf(" 2 - Open BMP images from folder\n");
 	printf(" 3 - Color to Gray\n");
-	printf(" 4 - rmse\n");
-	printf(" 5 - section image\n");
-	printf(" 0 - Exit\n\n");
+	printf(" 4 - RMSE\n");
+	printf(" 5 - Section image\n");
+	printf(" 6 - Up border \n");
+    printf(" 7 - Right border \n");
+    printf(" 8 - Down border \n");
+    printf(" 9 - Left border \n");
+
+    printf(" 0 - Exit\n\n");
 	printf("Option: ");
 	scanf("%d", &op);
 	switch (op)
@@ -251,6 +292,10 @@ int main()
 	case 5:
 		testSectionImage();
 		break;
+		/*case 6:
+            testComputeUpBorder();
+
+            break;*/
 
 	}
 	//} 	while (op != 0);
