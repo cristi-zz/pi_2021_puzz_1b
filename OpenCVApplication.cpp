@@ -68,25 +68,23 @@ void testColor2Gray()
 	}
 }
 
+double computeRMSE(vector<uchar> first, vector<uchar> second) {
 
-double computeRMSE(Mat_<uchar> first, Mat_<uchar> second) {
-
-	if (first.cols != second.cols) return -1.0;
+	if (first.size() != second.size()) return -1.0;
 
 	double rmse = 0.0;
-	int n = first.cols;
+	int nrOfElements = first.size();
 
-	for (int i = 0; i < n; i++)
+	for (int i = 0; i < nrOfElements; i++)
 	{
-		rmse += (double)((first(0, i) - second(0, i)) * (first(0, i) - second(0, i))) / n;
+		rmse += (double)((first.at(i) - second.at(i)) * (first.at(i) - second.at(i))) / nrOfElements;
 	}
 
 	rmse = sqrt(rmse);
 	return rmse;
 }
 
-// verifici k si iti dai seama daca e oriz sau vert
-// first second
+
 vector<double> computeRMSEK(Mat_<uchar> first, Mat_<uchar> second, int k) {
 
 	if (first.cols != second.cols || first.rows != second.rows) {
@@ -100,11 +98,17 @@ vector<double> computeRMSEK(Mat_<uchar> first, Mat_<uchar> second, int k) {
 	}
 
 	vector<double> rmse;
-
-	for (int i = 0; i < k; i++)
-	{
-		rmse.push_back(computeRMSE(first.row(i), second.row(i)));
+	// horizontally
+	if (k == first.rows) {
+		for (int i = 0; i < k; i++)
+			rmse.push_back(computeRMSE(first.row(i), second.row(i)));
 	}
+	else
+		// vertically
+		if (k == first.cols) {
+			for (int i = 0; i < k; i++)
+				rmse.push_back(computeRMSE(first.col(i), second.col(i)));
+		}
 
 	return rmse;
 }
@@ -112,46 +116,98 @@ vector<double> computeRMSEK(Mat_<uchar> first, Mat_<uchar> second, int k) {
 
 void testRMSE() {
 
-
-	// test RMSE
-	/*
-	Mat_<uchar> a(1, 4);
-	Mat_<uchar> b(1, 4);
-
-	a(0, 0) = 1;
-	a(0, 1) = 2;
-	a(0, 2) = 3;
-	a(0, 3) = 4;
-
-	b(0, 0) = 1;
-	b(0, 1) = 2;
-	b(0, 2) = 3;
-	b(0, 3) = 5;*/
-
-	//printf("%f ", computeRMSE(a, b));
+	// test computeRMSE
+	/*vector<uchar> first{ 1,2,3,4 };
+	vector<uchar> second{ 2,2,3,4 };
+	printf("%f ", computeRMSE(first, second));*/
 
 	// test rmseK
-
-	const int r = 2, c = 4;
-
+	const int r = 4, c = 2;
+  
 	uchar m1[r][c] = {
-	   { 1, 2, 3, 4},
-	   { 1, 2, 3, 4}
+	   { 3, 12},
+	   { 2, 20},
+	   { 3, 30},
+	   { 4, 40}
 	};
 	uchar m2[r][c] = {
-	   { 2, 2, 3, 4},
-	   { 1, 2, 3, 4}
+		{ 1, 10},
+		{ 2, 20},
+		{ 3, 30},
+		{ 4, 40}
 	};
 
 	Mat_<uchar> b1 = Mat(r, c, CV_8UC1, &m1);
 	Mat_<uchar> b2 = Mat(r, c, CV_8UC1, &m2);
 
 	vector<double> rmse = computeRMSEK(b1, b2, 2);
+	//print rmse
+	for (int i = 0; i < rmse.size(); i++)
+		std::cout << rmse.at(i) << ' ';
 
-	// print rmse
-	for (int i = 0; i < rmse.size(); i++) {
-	std::cout << rmse.at(i) << ' ';
+}
+
+
+Mat_<uchar> getSection(Mat_<uchar> src, int startRow, int startCol, int height, int width)
+{
+	// se creeaza imaginea cadran de dimensiunea ceruta
+	Mat_<uchar> section = Mat_<uchar>(height, width);
+
+	// se extrage din imaginea sursa cadranul cerut
+	for (int i = startRow; i < startRow + height; ++i) {
+		for (int j = startCol; j < startCol + width; ++j) {
+			section(i - startRow, j - startCol) = src(i, j);
+		}
 	}
+
+	// se returneaza sectiunea extrasa
+	return section;
+}
+
+std::vector<Mat_<uchar>> sectionImage(Mat_<uchar> src) {
+	// se creeaza std::vector-ul de cadrane extrase din imaginea sursa
+	std::vector<Mat_<uchar>> sections = {};
+
+	// se stabilesc dimensiunile
+	int height, width;
+	height = src.rows / 2;
+	width = src.cols / 2;
+
+	// colt stanga-sus
+	Mat_<uchar> section1 = getSection(src, 0, 0, height, width);
+	sections.push_back(section1); // se adauga sectiunea extrasa in std::vector-ul de sectiuni
+
+	// colt dreapta-sus
+	Mat_<uchar> section2 = getSection(src, 0, width, height, width);
+	sections.push_back(section2);
+
+	// colt stanga-jos
+	Mat_<uchar> section3 = getSection(src, height, 0, height, width);
+	sections.push_back(section3);
+
+	// colt dreapta-jos
+	Mat_<uchar> section4 = getSection(src, height, width, height, width);
+	sections.push_back(section4);
+
+	imshow("section1", section1);       // afiseaza sectiunea 1
+	imshow("section2", section2);       // afiseaza sectiunea 2
+	imshow("section3", section3);       // afiseaza sectiunea 3
+	imshow("section4", section4);       // afiseaza sectiunea 4
+
+	return sections;
+}
+
+void testSectionImage()
+{
+	char fname[MAX_PATH];
+	openFileDlg(fname);
+
+	Mat_<uchar> src; // matricea sursa
+	src = imread(fname, IMREAD_GRAYSCALE);
+
+	std::vector<Mat_<uchar>> images = sectionImage(src);
+
+	waitKey(0); // asteapta apasarea unei taste
 }
 
 Mat_<uchar> getSection(Mat_<uchar> src, int startRow, int startCol, int height, int width)
