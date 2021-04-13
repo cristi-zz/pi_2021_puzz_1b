@@ -9,7 +9,10 @@
 
 using namespace std;
 
+// variabile globale pe care o sa le folosim pana spre finalul proiectului pt TESTARE
 char fname[MAX_PATH] = "Images/cameraman.bmp";
+const int testK = 10;
+
 
 void testOpenImage()
 {
@@ -70,6 +73,8 @@ void testColor2Gray()
 	}
 }
 
+
+// todo (Ce AM VB LA LAB)
 double computeRMSE(vector<uchar> first, vector<uchar> second) {
 
 	if (first.size() != second.size()) return -1.0;
@@ -79,14 +84,15 @@ double computeRMSE(vector<uchar> first, vector<uchar> second) {
 
 	for (int i = 0; i < nrOfElements; i++)
 	{
-		rmse += (double)((first.at(i) - second.at(i)) * (first.at(i) - second.at(i))) / nrOfElements;
+		rmse += (double)((first.at(i) - second.at(i)) * (first.at(i) - second.at(i)));// / nrOfElements; // 
 	}
+	
 
-	rmse = sqrt(rmse);
+	rmse = sqrt(rmse / nrOfElements);
 	return rmse;
 }
 
-
+// todo (Ce AM VB LA LAB)
 vector<double> computeRMSEK(Mat_<uchar> first, Mat_<uchar> second, int k) {
 
 	if (first.cols != second.cols || first.rows != second.rows) {
@@ -102,15 +108,18 @@ vector<double> computeRMSEK(Mat_<uchar> first, Mat_<uchar> second, int k) {
 	vector<double> rmse;
 	// horizontally
 	if (k == first.rows) {
-		for (int i = 0; i < k; i++)
+		for (int i = 0; i < k; i++) {
 			rmse.push_back(computeRMSE(first.row(i), second.row(i)));
-	}
-	else
-		// vertically
-		if (k == first.cols) {
-			for (int i = 0; i < k; i++)
-				rmse.push_back(computeRMSE(first.col(i), second.col(i)));
 		}
+	}
+	else {// aici cred ca poti scrie direct in else ca s verically
+		// vertically
+		if (k == first.cols) { // fara sa mai verifici asta, pentru ca veirifici la inceput sa fie una din rows/cols = cu k
+			for (int i = 0; i < k; i++) {
+				rmse.push_back(computeRMSE(first.col(i), second.col(i)));
+			}
+		}
+	}
 
 	return rmse;
 }
@@ -146,7 +155,8 @@ void testRMSE() {
 	//print rmse
 	for (int i = 0; i < rmse.size(); i++)
 		std::cout << rmse.at(i) << ' ';
-
+	
+	// sa adaugi un wait ca nu raman rezultatele in consola (gen apar si dispar rapid)
 }
 
 
@@ -191,89 +201,27 @@ std::vector<Mat_<uchar>> sectionImage(Mat_<uchar> src) {
 	Mat_<uchar> section4 = getSection(src, height, width, height, width);
 	sections.push_back(section4);
 
-	imshow("section1", section1);       // afiseaza sectiunea 1
-	imshow("section2", section2);       // afiseaza sectiunea 2
-	imshow("section3", section3);       // afiseaza sectiunea 3
-	imshow("section4", section4);       // afiseaza sectiunea 4
-
 	return sections;
 }
 
 void testSectionImage()
 {
+	// partea asta o lasam comentata pana spre finalul proiectului. LUCRAM DOAR PE CAMERAMAN
+	/*
 	char fname[MAX_PATH];
 	openFileDlg(fname);
+	*/
 
 	Mat_<uchar> src; // matricea sursa
 	src = imread(fname, IMREAD_GRAYSCALE);
 
 	std::vector<Mat_<uchar>> images = sectionImage(src);
-
+	imshow("section1", images[0]);       // afiseaza sectiunea 1
+	imshow("section2", images[1]);       // afiseaza sectiunea 2
+	imshow("section3", images[2]);       // afiseaza sectiunea 3
+	imshow("section4", images[3]);       // afiseaza sectiunea 4
 	waitKey(0); // asteapta apasarea unei taste
 }
-
-Mat_<uchar> getSection(Mat_<uchar> src, int startRow, int startCol, int height, int width)
-{
-	// se creeaza imaginea cadran de dimensiunea ceruta
-	Mat_<uchar> section = Mat_<uchar>(height, width);
-
-	// se extrage din imaginea sursa cadranul cerut
-	for (int i = startRow; i < startRow + height; ++i) {
-		for (int j = startCol; j < startCol + width; ++j) {
-			section(i - startRow, j - startCol) = src(i, j);
-		}
-	}
-
-	// se returneaza sectiunea extrasa
-	return section;
-}
-
-std::vector<Mat_<uchar>> sectionImage(Mat_<uchar> src) {
-	// se creeaza std::vector-ul de cadrane extrase din imaginea sursa
-	std::vector<Mat_<uchar>> sections = {};
-
-	// se stabilesc dimensiunile
-	int height, width;
-	height = src.rows / 2;
-	width = src.cols / 2;
-
-	// colt stanga-sus
-	Mat_<uchar> section1 = getSection(src, 0, 0, height, width);
-	sections.push_back(section1); // se adauga sectiunea extrasa in std::vector-ul de sectiuni
-
-	// colt dreapta-sus
-	Mat_<uchar> section2 = getSection(src, 0, width, height, width);
-	sections.push_back(section2);
-
-	// colt stanga-jos
-	Mat_<uchar> section3 = getSection(src, height, 0, height, width);
-	sections.push_back(section3);
-
-	// colt dreapta-jos
-	Mat_<uchar> section4 = getSection(src, height, width, height, width);
-	sections.push_back(section4);
-
-	imshow("section1", section1);       // afiseaza sectiunea 1
-	imshow("section2", section2);       // afiseaza sectiunea 2
-	imshow("section3", section3);       // afiseaza sectiunea 3
-	imshow("section4", section4);       // afiseaza sectiunea 4
-
-	return sections;
-}
-
-void testSectionImage()
-{
-	char fname[MAX_PATH];
-	openFileDlg(fname);
-
-	Mat_<uchar> src; // matricea sursa
-	src = imread(fname, IMREAD_GRAYSCALE);
-
-	std::vector<Mat_<uchar>> images = sectionImage(src);
-
-	waitKey(0); // asteapta apasarea unei taste
-}
-
 
 
 Mat_<uchar> computeUpBorder(Mat_<uchar> src, int k) {
@@ -281,14 +229,10 @@ Mat_<uchar> computeUpBorder(Mat_<uchar> src, int k) {
 
     for (int i = 0; i < k; i++) {
         for (int j = 0; j < src.cols; j++) {
-            border(i, j) = src(i, j);
-
+			border(i, j) = src(i, j);
         }
     }
 
-    //imshow("opened image", src);
-    //imshow("up border", border);
-    //waitKey(0);
     return border;
 }
 
@@ -297,92 +241,109 @@ Mat_<uchar> computeDownBorder(Mat_<uchar> src, int k) {
 
     for (int i = src.rows - 1; i >= src.rows - k + 1; i--) {
         for (int j = 0; j < src.cols; j++) {
-
             border(src.rows - i, j) = src(i, j);
-
         }
     }
 
-    //imshow("opened image", src);
-    //imshow("down border", border);
-    //waitKey(0);
     return border;
 }
 
 Mat_<uchar> computeLeftBorder(Mat_<uchar> src, int k) {
 	Mat_<uchar> border = Mat_<uchar>(src.rows, k);
 
-	for (int i = 0; i < src.rows; i++)
-		for (int j = 0; j < k; j++)
+	for (int i = 0; i < src.rows; i++) {
+		for (int j = 0; j < k; j++) {
 			border(i, j) = src(i, j);
-
+		}
+	}
+		
 	return border;
 }
 
 Mat_<uchar> computeRightBorder(Mat_<uchar> src, int k) {
 	Mat_<uchar> border = Mat_<uchar>(src.rows, k);
 
-	for (int i = 0; i < src.rows; i++)
-		for (int j = src.cols-1; j >= src.cols-k; j--)
-			border(i, src.cols-1-j) = src(i, j);
-
+	for (int i = 0; i < src.rows; i++) {
+		for (int j = src.cols - 1; j >= src.cols - k; j--) {
+			border(i, src.cols - 1 - j) = src(i, j);
+		}
+	}
+		
 	return border;
 }
 
 
-
 void testComputeUpBorder() {
-	char fname[MAX_PATH] = "Images/cameraman.bmp";
+	// partea asta o lasam comentata pana spre finalul proiectului. LUCRAM DOAR PE CAMERAMAN
+	/*
+	char fname[MAX_PATH];
+	openFileDlg(fname);
+	*/
+	
 	Mat_<uchar> src; // matricea sursa
 	src = imread(fname, IMREAD_GRAYSCALE);
 
 	int k = 10;
-	Mat_<uchar> upBorder = computeUpBorder(src, k);
+	Mat_<uchar> upBorder = computeUpBorder(src, testK);
 
-	imshow("opened image", upBorder);
+	imshow("original", src);
+	imshow("up border", upBorder);
 	waitKey(0);
 }
 
-
 void testComputeRightBorder() {
-	char fname[MAX_PATH] = "Images/cameraman.bmp";
+	// partea asta o lasam comentata pana spre finalul proiectului. LUCRAM DOAR PE CAMERAMAN
+	/*
+	char fname[MAX_PATH];
+	openFileDlg(fname);
+	*/
+
 	Mat_<uchar> src; // matricea sursa
 	src = imread(fname, IMREAD_GRAYSCALE);
 
 	int k = 10;
-	Mat_<uchar> rightBorder = computeUpBorder(src, k);
+	Mat_<uchar> rightBorder = computeRightBorder(src, testK);
 
-	imshow("opened image", upBorder);
+	imshow("original", src);
+	imshow("right border", rightBorder);
 	waitKey(0);
 }
 	
 void testComputeDownBorder() {
-	char fname[MAX_PATH] = "Images/cameraman.bmp";
+	// partea asta o lasam comentata pana spre finalul proiectului. LUCRAM DOAR PE CAMERAMAN
+	/*
+	char fname[MAX_PATH];
+	openFileDlg(fname);
+	*/
+
 	Mat_<uchar> src; // matricea sursa
 	src = imread(fname, IMREAD_GRAYSCALE);
 
 	int k = 10;
-	Mat_<uchar> downBorder = computeDownBorder(src, k);
+	Mat_<uchar> downBorder = computeDownBorder(src, testK);
 
-	imshow("opened image", downBorder);
+	imshow("original", src);
+	imshow("down border", downBorder);
 	waitKey(0);
 }
 
 void testComputeLeftBorder() {
-	char fname[MAX_PATH] = "Images/cameraman.bmp";
+	// partea asta o lasam comentata pana spre finalul proiectului. LUCRAM DOAR PE CAMERAMAN
+	/*
+	char fname[MAX_PATH];
+	openFileDlg(fname);
+	*/
+
 	Mat_<uchar> src; // matricea sursa
 	src = imread(fname, IMREAD_GRAYSCALE);
 
 	int k = 10;
-	Mat_<uchar> leftBorder = computeLeftBorder(src, k);
+	Mat_<uchar> leftBorder = computeLeftBorder(src, testK);
 
-	imshow("opened image", leftBorder);
+	imshow("original", src);
+	imshow("left border", leftBorder);
 	waitKey(0);
 }
-
-
-
-
 
 
 void show(Mat_<uchar> img) {
@@ -395,7 +356,7 @@ void show(Mat_<uchar> img) {
 		printf("  --  \n");
 	}
 }
-
+/*
 void testLeftBorder() {
 	Mat_<uchar> img = imread(fname, IMREAD_GRAYSCALE);
 	Mat_<uchar> left = computeLeftBorder(img, 2);
@@ -411,61 +372,61 @@ void testRightBorder() {
 	show(img);
 	show(left);
 }
-
+*/
 
 
 
 int main()
 {
 	int op;
-	//do
-	//{
-	system("cls");
-	destroyAllWindows();
-	printf("Menu:\n");
-	printf(" 1 - Basic image opening...\n");
-	printf(" 2 - Open BMP images from folder\n");
-	printf(" 3 - Color to Gray\n");
-	printf(" 4 - RMSE\n");
-	printf(" 5 - Section image\n");
-	printf(" 6 - Up border \n");
-    printf(" 7 - Right border /todo\n");
-    printf(" 8 - Down border \n");
-    printf(" 9 - Left border /todo\n");
+	do
+		{
+		system("cls");
+		destroyAllWindows();
+		printf("Menu:\n");
+		printf(" 1 - Basic image opening...\n");
+		printf(" 2 - Open BMP images from folder\n");
+		printf(" 3 - Color to Gray\n");
+		printf(" 4 - RMSE\n");
+		printf(" 5 - Section image\n");
+		printf(" 6 - Up border \n");
+		printf(" 7 - Right border /todo\n");
+		printf(" 8 - Down border \n");
+		printf(" 9 - Left border /todo\n");
 
-    printf(" 0 - Exit\n\n");
-	printf("Option: ");
-	scanf("%d", &op);
-	switch (op)
-	{
-	case 1:
-		testOpenImage();
+		printf(" 0 - Exit\n\n");
+		printf("Option: ");
+		scanf("%d", &op);
+		switch (op)
+		{
+		case 1:
+			testOpenImage();
+			break;
+		case 2:
+			testOpenImagesFld();
+			break;
+		case 3:
+			testColor2Gray();
+			break;
+		case 4:
+			testRMSE();
+			break;
+		case 5:
+			testSectionImage();
+			break;
+		case 6:
+			testComputeUpBorder();
 		break;
-	case 2:
-		testOpenImagesFld();
-		break;
-	case 3:
-		testColor2Gray();
-		break;
-	case 4:
-		testRMSE();
-		break;
-	case 5:
-		testSectionImage();
-		break;
-	case 6:
-    testComputeUpBorder();
-    break;
-	case 7:
-		testComputeRightBorder();
-		break;
-	case 8:
-		testComputeDownBorder();
-		break;
-	case 9:
-		testComputeLeftBorder();
-		break;
-	}
-	//} 	while (op != 0);
+		case 7:
+			testComputeRightBorder();
+			break;
+		case 8:
+			testComputeDownBorder();
+			break;
+		case 9:
+			testComputeLeftBorder();
+			break;
+		}
+	} 	while (op != 0);
 	return 0;
 }
