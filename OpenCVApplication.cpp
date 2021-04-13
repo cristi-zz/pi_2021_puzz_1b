@@ -286,9 +286,9 @@ Mat_<uchar> computeUpBorder(Mat_<uchar> src, int k) {
         }
     }
 
-    imshow("opened image", src);
-    imshow("up border", border);
-    waitKey(0);
+    //imshow("opened image", src);
+    //imshow("up border", border);
+    //waitKey(0);
     return border;
 }
 
@@ -303,13 +303,11 @@ Mat_<uchar> computeDownBorder(Mat_<uchar> src, int k) {
         }
     }
 
-    imshow("opened image", src);
-    imshow("down border", border);
-    waitKey(0);
+    //imshow("opened image", src);
+    //imshow("down border", border);
+    //waitKey(0);
     return border;
 }
-
-
 
 Mat_<uchar> computeLeftBorder(Mat_<uchar> src, int k) {
 	Mat_<uchar> border = Mat_<uchar>(src.rows, k);
@@ -330,6 +328,62 @@ Mat_<uchar> computeRightBorder(Mat_<uchar> src, int k) {
 
 	return border;
 }
+
+
+
+void testComputeUpBorder() {
+	char fname[MAX_PATH] = "Images/cameraman.bmp";
+	Mat_<uchar> src; // matricea sursa
+	src = imread(fname, IMREAD_GRAYSCALE);
+
+	int k = 10;
+	Mat_<uchar> upBorder = computeUpBorder(src, k);
+
+	imshow("opened image", upBorder);
+	waitKey(0);
+}
+
+
+void testComputeRightBorder() {
+	char fname[MAX_PATH] = "Images/cameraman.bmp";
+	Mat_<uchar> src; // matricea sursa
+	src = imread(fname, IMREAD_GRAYSCALE);
+
+	int k = 10;
+	Mat_<uchar> rightBorder = computeUpBorder(src, k);
+
+	imshow("opened image", upBorder);
+	waitKey(0);
+}
+	
+void testComputeDownBorder() {
+	char fname[MAX_PATH] = "Images/cameraman.bmp";
+	Mat_<uchar> src; // matricea sursa
+	src = imread(fname, IMREAD_GRAYSCALE);
+
+	int k = 10;
+	Mat_<uchar> downBorder = computeDownBorder(src, k);
+
+	imshow("opened image", downBorder);
+	waitKey(0);
+}
+
+void testComputeLeftBorder() {
+	char fname[MAX_PATH] = "Images/cameraman.bmp";
+	Mat_<uchar> src; // matricea sursa
+	src = imread(fname, IMREAD_GRAYSCALE);
+
+	int k = 10;
+	Mat_<uchar> leftBorder = computeLeftBorder(src, k);
+
+	imshow("opened image", leftBorder);
+	waitKey(0);
+}
+
+
+
+
+
 
 void show(Mat_<uchar> img) {
 	for (int i = 0; i < img.rows; i++)
@@ -375,9 +429,9 @@ int main()
 	printf(" 4 - RMSE\n");
 	printf(" 5 - Section image\n");
 	printf(" 6 - Up border \n");
-    printf(" 7 - Right border \n");
+    printf(" 7 - Right border /todo\n");
     printf(" 8 - Down border \n");
-    printf(" 9 - Left border \n");
+    printf(" 9 - Left border /todo\n");
 
     printf(" 0 - Exit\n\n");
 	printf("Option: ");
@@ -393,31 +447,24 @@ int main()
 	case 3:
 		testColor2Gray();
 		break;
-
 	case 4:
 		testRMSE();
 		break;
-
 	case 5:
 		testSectionImage();
 		break;
 	case 6:
-            //testComputeUpBorder();
-
-            break;
-
-
+    testComputeUpBorder();
+    break;
 	case 7:
-		testRightBorder();
+		testComputeRightBorder();
 		break;
 	case 8:
-		//
+		testComputeDownBorder();
 		break;
 	case 9:
-		testLeftBorder();
+		testComputeLeftBorder();
 		break;
-		
-
 	}
 	//} 	while (op != 0);
 	return 0;
