@@ -9,6 +9,8 @@
 
 using namespace std;
 
+char fname[MAX_PATH] = "Images/cameraman.bmp";
+
 void testOpenImage()
 {
 	char fname[MAX_PATH];
@@ -25,7 +27,7 @@ void testOpenImagesFld()
 {
 	char folderName[MAX_PATH];
 	if (openFolderDlg(folderName) == 0)
-		return;
+	return;
 	char fname[MAX_PATH];
 	FileGetter fg(folderName, "bmp");
 	while (fg.getNextAbsFile(fname))
@@ -284,9 +286,9 @@ Mat_<uchar> computeUpBorder(Mat_<uchar> src, int k) {
         }
     }
 
-    imshow("opened image", src);
-    imshow("up border", border);
-    waitKey(0);
+    //imshow("opened image", src);
+    //imshow("up border", border);
+    //waitKey(0);
     return border;
 }
 
@@ -301,11 +303,33 @@ Mat_<uchar> computeDownBorder(Mat_<uchar> src, int k) {
         }
     }
 
-    imshow("opened image", src);
-    imshow("down border", border);
-    waitKey(0);
+    //imshow("opened image", src);
+    //imshow("down border", border);
+    //waitKey(0);
     return border;
 }
+
+Mat_<uchar> computeLeftBorder(Mat_<uchar> src, int k) {
+	Mat_<uchar> border = Mat_<uchar>(src.rows, k);
+
+	for (int i = 0; i < src.rows; i++)
+		for (int j = 0; j < k; j++)
+			border(i, j) = src(i, j);
+
+	return border;
+}
+
+Mat_<uchar> computeRightBorder(Mat_<uchar> src, int k) {
+	Mat_<uchar> border = Mat_<uchar>(src.rows, k);
+
+	for (int i = 0; i < src.rows; i++)
+		for (int j = src.cols-1; j >= src.cols-k; j--)
+			border(i, src.cols-1-j) = src(i, j);
+
+	return border;
+}
+
+
 
 void testComputeUpBorder() {
 	char fname[MAX_PATH] = "Images/cameraman.bmp";
@@ -326,9 +350,9 @@ void testComputeRightBorder() {
 	src = imread(fname, IMREAD_GRAYSCALE);
 
 	int k = 10;
-	//Mat_<uchar> rightBorder = computeUpBorder(src, k);
+	Mat_<uchar> rightBorder = computeUpBorder(src, k);
 
-	//imshow("opened image", upBorder);
+	imshow("opened image", upBorder);
 	waitKey(0);
 }
 	
@@ -350,11 +374,44 @@ void testComputeLeftBorder() {
 	src = imread(fname, IMREAD_GRAYSCALE);
 
 	int k = 10;
-	//Mat_<uchar> leftBorder = computeLeftBorder(src, k);
+	Mat_<uchar> leftBorder = computeLeftBorder(src, k);
 
-	//imshow("opened image", leftBorder);
+	imshow("opened image", leftBorder);
 	waitKey(0);
 }
+
+
+
+
+
+
+void show(Mat_<uchar> img) {
+	for (int i = 0; i < img.rows; i++)
+	{
+		for (int j = 0; j < img.cols; j++)
+		{
+			printf("%d ", img(i, j));
+		}
+		printf("  --  \n");
+	}
+}
+
+void testLeftBorder() {
+	Mat_<uchar> img = imread(fname, IMREAD_GRAYSCALE);
+	Mat_<uchar> left = computeLeftBorder(img, 2);
+	
+	show(img);
+	show(left);
+}
+
+void testRightBorder() {
+	Mat_<uchar> img = imread(fname, IMREAD_GRAYSCALE);
+	Mat_<uchar> left = computeRightBorder(img, 2);
+
+	show(img);
+	show(left);
+}
+
 
 
 
@@ -397,8 +454,8 @@ int main()
 		testSectionImage();
 		break;
 	case 6:
-        testComputeUpBorder();
-        break;
+    testComputeUpBorder();
+    break;
 	case 7:
 		testComputeRightBorder();
 		break;
@@ -408,8 +465,6 @@ int main()
 	case 9:
 		testComputeLeftBorder();
 		break;
-
-
 	}
 	//} 	while (op != 0);
 	return 0;
