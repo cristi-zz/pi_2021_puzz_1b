@@ -249,26 +249,31 @@ Mat_<uchar> computeDownBorder(Mat_<uchar> src, int k) {
 }
 
 Mat_<uchar> computeLeftBorder(Mat_<uchar> src, int k) {
-	Mat_<uchar> border = Mat_<uchar>(src.rows, k);
+	Mat_<uchar> border = Mat_<uchar>(k, src.cols);
 
 	for (int i = 0; i < src.rows; i++) {
 		for (int j = 0; j < k; j++) {
-			border(i, j) = src(i, j);
+			border(k - 1 - j, i) = src(i, k - j - 1);
 		}
 	}
-		
+	//imshow("opened image", src);
+	//imshow("left border", border);
+	//waitKey(0);
 	return border;
 }
 
 Mat_<uchar> computeRightBorder(Mat_<uchar> src, int k) {
-	Mat_<uchar> border = Mat_<uchar>(src.rows, k);
-
+	//transpun bordura verticala dreapta pe orizontala
+	Mat_<uchar> border = Mat_<uchar>(k, src.cols);
+	//bordura dreapta se va "rasturna" spre stanga
 	for (int i = 0; i < src.rows; i++) {
 		for (int j = src.cols - 1; j >= src.cols - k; j--) {
-			border(i, src.cols - 1 - j) = src(i, j);
+			border(src.cols - 1 - j, i) = src(i, j);
 		}
 	}
-		
+	//imshow("opened image", src);
+	//imshow("right border", border);
+	//waitKey(0);
 	return border;
 }
 
@@ -374,7 +379,21 @@ void testRightBorder() {
 }
 */
 
+void testMatchingBorders()
+{
+	Mat_<uchar> src; // matricea sursa
+	src = imread(fname, IMREAD_GRAYSCALE);
 
+	std::vector<Mat_<uchar>> sections = sectionImage(src);
+
+	Mat_<uchar> img1 = computeRightBorder(sections[0], 40);
+	Mat_<uchar> img2 = computeLeftBorder(sections[1], 40);
+
+	imshow("colt-stanga-sus", img1);
+	imshow("colt-dreapta-sus", img2);
+
+	waitKey(0);
+}
 
 int main()
 {
@@ -393,6 +412,7 @@ int main()
 		printf(" 7 - Right border /todo\n");
 		printf(" 8 - Down border \n");
 		printf(" 9 - Left border /todo\n");
+		printf(" 31 - Test Matching Borders\n");
 
 		printf(" 0 - Exit\n\n");
 		printf("Option: ");
@@ -425,6 +445,9 @@ int main()
 			break;
 		case 9:
 			testComputeLeftBorder();
+			break;
+		case 31:
+			testMatchingBorders();
 			break;
 		}
 	} 	while (op != 0);
