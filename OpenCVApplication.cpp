@@ -30,7 +30,7 @@ void testOpenImagesFld()
 {
 	char folderName[MAX_PATH];
 	if (openFolderDlg(folderName) == 0)
-	return;
+		return;
 	char fname[MAX_PATH];
 	FileGetter fg(folderName, "bmp");
 	while (fg.getNextAbsFile(fname))
@@ -86,7 +86,7 @@ double computeRMSE(vector<uchar> first, vector<uchar> second) {
 	{
 		rmse += (double)((first.at(i) - second.at(i)) * (first.at(i) - second.at(i)));// / nrOfElements; // 
 	}
-	
+
 
 	rmse = sqrt(rmse / nrOfElements);
 	return rmse;
@@ -134,7 +134,7 @@ void testRMSE() {
 
 	// test rmseK
 	const int r = 4, c = 2;
-  
+
 	uchar m1[r][c] = {
 	   { 3, 12},
 	   { 2, 20},
@@ -155,7 +155,7 @@ void testRMSE() {
 	//print rmse
 	for (int i = 0; i < rmse.size(); i++)
 		std::cout << rmse.at(i) << ' ';
-	
+
 	// sa adaugi un wait ca nu raman rezultatele in consola (gen apar si dispar rapid)
 }
 
@@ -225,50 +225,56 @@ void testSectionImage()
 
 
 Mat_<uchar> computeUpBorder(Mat_<uchar> src, int k) {
-    Mat_<uchar> border = Mat_<uchar>(k, src.cols);
+	Mat_<uchar> border = Mat_<uchar>(k, src.cols);
 
-    for (int i = 0; i < k; i++) {
-        for (int j = 0; j < src.cols; j++) {
+	for (int i = 0; i < k; i++) {
+		for (int j = 0; j < src.cols; j++) {
 			border(i, j) = src(i, j);
-        }
-    }
+		}
+	}
 
-    return border;
+	return border;
 }
 
 Mat_<uchar> computeDownBorder(Mat_<uchar> src, int k) {
-    Mat_<uchar> border = Mat_<uchar>(k, src.cols);
+	Mat_<uchar> border = Mat_<uchar>(k, src.cols);
 
-    for (int i = src.rows - 1; i >= src.rows - k + 1; i--) {
-        for (int j = 0; j < src.cols; j++) {
-            border(src.rows - i, j) = src(i, j);
-        }
-    }
+	for (int i = src.rows - 1; i >= src.rows - k + 1; i--) {
+		for (int j = 0; j < src.cols; j++) {
+			border(src.rows - i, j) = src(i, j);
+		}
+	}
 
-    return border;
-}
-
-Mat_<uchar> computeRightBorder(Mat_<uchar> src, int k) {
-    //transpun bordura verticala dreapta pe orizontala
-    Mat_<uchar> border = Mat_<uchar>(k, src.cols);
-    //bordura dreapta se va "rasturna" spre stanga
-    for (int i = 0; i < src.rows; i++) {
-        for (int j = src.cols - 1; j >= src.cols - k; j--) {
-            border(src.cols-1-j, i) = src(i, j);
-        }
-    }
-    return border;
+	return border;
 }
 
 Mat_<uchar> computeLeftBorder(Mat_<uchar> src, int k) {
-    Mat_<uchar> border = Mat_<uchar>(k,src.cols);
+	Mat_<uchar> border = Mat_<uchar>(k, src.cols);
 
-    for (int i = 0; i < src.rows; i++) {
-        for (int j = 0; j < k; j++) {
-            border(k-1-j, i) = src(i, j);
-        }
-    }
-    return border;
+	for (int i = 0; i < src.rows; i++) {
+		for (int j = 0; j < k; j++) {
+			border(k - 1 - j, i) = src(i, k - j - 1);
+		}
+	}
+	//imshow("opened image", src);
+	//imshow("left border", border);
+	//waitKey(0);
+	return border;
+}
+
+Mat_<uchar> computeRightBorder(Mat_<uchar> src, int k) {
+	//transpun bordura verticala dreapta pe orizontala
+	Mat_<uchar> border = Mat_<uchar>(k, src.cols);
+	//bordura dreapta se va "rasturna" spre stanga
+	for (int i = 0; i < src.rows; i++) {
+		for (int j = src.cols - 1; j >= src.cols - k; j--) {
+			border(src.cols - 1 - j, i) = src(i, j);
+		}
+	}
+	//imshow("opened image", src);
+	//imshow("right border", border);
+	//waitKey(0);
+	return border;
 }
 
 
@@ -278,7 +284,7 @@ void testComputeUpBorder() {
 	char fname[MAX_PATH];
 	openFileDlg(fname);
 	*/
-	
+
 	Mat_<uchar> src; // matricea sursa
 	src = imread(fname, IMREAD_GRAYSCALE);
 
@@ -307,7 +313,7 @@ void testComputeRightBorder() {
 	imshow("right border", rightBorder);
 	waitKey(0);
 }
-	
+
 void testComputeDownBorder() {
 	// partea asta o lasam comentata pana spre finalul proiectului. LUCRAM DOAR PE CAMERAMAN
 	/*
@@ -359,7 +365,7 @@ void show(Mat_<uchar> img) {
 void testLeftBorder() {
 	Mat_<uchar> img = imread(fname, IMREAD_GRAYSCALE);
 	Mat_<uchar> left = computeLeftBorder(img, 2);
-	
+
 	show(img);
 	show(left);
 }
@@ -393,7 +399,7 @@ int main()
 {
 	int op;
 	do
-		{
+	{
 		system("cls");
 		destroyAllWindows();
 		printf("Menu:\n");
@@ -430,7 +436,7 @@ int main()
 			break;
 		case 6:
 			testComputeUpBorder();
-		break;
+			break;
 		case 7:
 			testComputeRightBorder();
 			break;
@@ -444,6 +450,6 @@ int main()
 			testMatchingBorders();
 			break;
 		}
-	} 	while (op != 0);
+	} while (op != 0);
 	return 0;
 }
