@@ -248,33 +248,27 @@ Mat_<uchar> computeDownBorder(Mat_<uchar> src, int k) {
     return border;
 }
 
-Mat_<uchar> computeLeftBorder(Mat_<uchar> src, int k) {
-	Mat_<uchar> border = Mat_<uchar>(k, src.cols);
-
-	for (int i = 0; i < src.rows; i++) {
-		for (int j = 0; j < k; j++) {
-			border(k - 1 - j, i) = src(i, k - j - 1);
-		}
-	}
-	//imshow("opened image", src);
-	//imshow("left border", border);
-	//waitKey(0);
-	return border;
+Mat_<uchar> computeRightBorder(Mat_<uchar> src, int k) {
+    //transpun bordura verticala dreapta pe orizontala
+    Mat_<uchar> border = Mat_<uchar>(k, src.cols);
+    //bordura dreapta se va "rasturna" spre stanga
+    for (int i = 0; i < src.rows; i++) {
+        for (int j = src.cols - 1; j >= src.cols - k; j--) {
+            border(src.cols-1-j, i) = src(i, j);
+        }
+    }
+    return border;
 }
 
-Mat_<uchar> computeRightBorder(Mat_<uchar> src, int k) {
-	//transpun bordura verticala dreapta pe orizontala
-	Mat_<uchar> border = Mat_<uchar>(k, src.cols);
-	//bordura dreapta se va "rasturna" spre stanga
-	for (int i = 0; i < src.rows; i++) {
-		for (int j = src.cols - 1; j >= src.cols - k; j--) {
-			border(src.cols - 1 - j, i) = src(i, j);
-		}
-	}
-	//imshow("opened image", src);
-	//imshow("right border", border);
-	//waitKey(0);
-	return border;
+Mat_<uchar> computeLeftBorder(Mat_<uchar> src, int k) {
+    Mat_<uchar> border = Mat_<uchar>(k,src.cols);
+
+    for (int i = 0; i < src.rows; i++) {
+        for (int j = 0; j < k; j++) {
+            border(k-1-j, i) = src(i, j);
+        }
+    }
+    return border;
 }
 
 
