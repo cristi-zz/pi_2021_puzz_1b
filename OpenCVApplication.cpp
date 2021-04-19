@@ -30,7 +30,7 @@ void testOpenImagesFld()
 {
 	char folderName[MAX_PATH];
 	if (openFolderDlg(folderName) == 0)
-	return;
+		return;
 	char fname[MAX_PATH];
 	FileGetter fg(folderName, "bmp");
 	while (fg.getNextAbsFile(fname))
@@ -74,89 +74,50 @@ void testColor2Gray()
 }
 
 
-// todo (Ce AM VB LA LAB)
-double computeRMSE(vector<uchar> first, vector<uchar> second) {
-
-	if (first.size() != second.size()) return -1.0;
-
-	double rmse = 0.0;
-	int nrOfElements = first.size();
-
-	for (int i = 0; i < nrOfElements; i++)
-	{
-		rmse += (double)((first.at(i) - second.at(i)) * (first.at(i) - second.at(i)));// / nrOfElements; // 
-	}
-	
-
-	rmse = sqrt(rmse / nrOfElements);
-	return rmse;
-}
-
-// todo (Ce AM VB LA LAB)
-vector<double> computeRMSEK(Mat_<uchar> first, Mat_<uchar> second, int k) {
+double computeRMSE(Mat_<uchar> first, Mat_<uchar> second) {
 
 	if (first.cols != second.cols || first.rows != second.rows) {
-		printf("\nERROR: the matrices do not have the same size\n");
+		printf("\nERROR: the borders do not have the same size\n");
 		exit(1);
 	}
 
-	if (k > first.rows || k < 0) {
-		printf("\nERROR: k out of range\n");
-		exit(1);
-	}
+	double rmse = 0.0;
+	int nrOfElements = first.rows * first.cols;
 
-	vector<double> rmse;
-	// horizontally
-	if (k == first.rows) {
-		for (int i = 0; i < k; i++) {
-			rmse.push_back(computeRMSE(first.row(i), second.row(i)));
-		}
-	}
-	else {// aici cred ca poti scrie direct in else ca s verically
-		// vertically
-		if (k == first.cols) { // fara sa mai verifici asta, pentru ca veirifici la inceput sa fie una din rows/cols = cu k
-			for (int i = 0; i < k; i++) {
-				rmse.push_back(computeRMSE(first.col(i), second.col(i)));
-			}
+	for (int i = 0; i < first.rows; i++)
+	{
+		for (int j = 0; j < first.cols; j++)
+		{
+			rmse += (first(i, j) - second(i, j)) * (first(i, j) - second(i, j));
 		}
 	}
 
+	rmse = sqrt(rmse / nrOfElements);
 	return rmse;
 }
 
 
 void testRMSE() {
 
-	// test computeRMSE
-	/*vector<uchar> first{ 1,2,3,4 };
-	vector<uchar> second{ 2,2,3,4 };
-	printf("%f ", computeRMSE(first, second));*/
+	const int r = 2, c = 4;
 
-	// test rmseK
-	const int r = 4, c = 2;
-  
 	uchar m1[r][c] = {
-	   { 3, 12},
-	   { 2, 20},
-	   { 3, 30},
-	   { 4, 40}
+	   {3,2,3,4},
+	   {1,2,3,4}
 	};
 	uchar m2[r][c] = {
-		{ 1, 10},
-		{ 2, 20},
-		{ 3, 30},
-		{ 4, 40}
+	   {1,2,3,4},
+	   {1,2,3,4}
 	};
 
 	Mat_<uchar> b1 = Mat(r, c, CV_8UC1, &m1);
 	Mat_<uchar> b2 = Mat(r, c, CV_8UC1, &m2);
 
-	vector<double> rmse = computeRMSEK(b1, b2, 2);
-	//print rmse
-	for (int i = 0; i < rmse.size(); i++)
-		std::cout << rmse.at(i) << ' ';
+	double rmse = computeRMSE(b1, b2);
+	printf("RMSE = %f", rmse);
 	
-	// sa adaugi un wait ca nu raman rezultatele in consola (gen apar si dispar rapid)
+	imshow("just for waitKey", NULL);
+	waitKey(0);
 }
 
 
@@ -225,27 +186,27 @@ void testSectionImage()
 
 
 Mat_<uchar> computeUpBorder(Mat_<uchar> src, int k) {
-    Mat_<uchar> border = Mat_<uchar>(k, src.cols);
+	Mat_<uchar> border = Mat_<uchar>(k, src.cols);
 
-    for (int i = 0; i < k; i++) {
-        for (int j = 0; j < src.cols; j++) {
+	for (int i = 0; i < k; i++) {
+		for (int j = 0; j < src.cols; j++) {
 			border(i, j) = src(i, j);
-        }
-    }
+		}
+	}
 
-    return border;
+	return border;
 }
 
 Mat_<uchar> computeDownBorder(Mat_<uchar> src, int k) {
-    Mat_<uchar> border = Mat_<uchar>(k, src.cols);
+	Mat_<uchar> border = Mat_<uchar>(k, src.cols);
 
-    for (int i = src.rows - 1; i >= src.rows - k + 1; i--) {
-        for (int j = 0; j < src.cols; j++) {
-            border(src.rows - i, j) = src(i, j);
-        }
-    }
+	for (int i = src.rows - 1; i >= src.rows - k + 1; i--) {
+		for (int j = 0; j < src.cols; j++) {
+			border(src.rows - i, j) = src(i, j);
+		}
+	}
 
-    return border;
+	return border;
 }
 
 Mat_<uchar> computeLeftBorder(Mat_<uchar> src, int k) {
@@ -256,7 +217,7 @@ Mat_<uchar> computeLeftBorder(Mat_<uchar> src, int k) {
 			border(i, j) = src(i, j);
 		}
 	}
-		
+
 	return border;
 }
 
@@ -268,7 +229,7 @@ Mat_<uchar> computeRightBorder(Mat_<uchar> src, int k) {
 			border(i, src.cols - 1 - j) = src(i, j);
 		}
 	}
-		
+
 	return border;
 }
 
@@ -279,7 +240,7 @@ void testComputeUpBorder() {
 	char fname[MAX_PATH];
 	openFileDlg(fname);
 	*/
-	
+
 	Mat_<uchar> src; // matricea sursa
 	src = imread(fname, IMREAD_GRAYSCALE);
 
@@ -308,7 +269,7 @@ void testComputeRightBorder() {
 	imshow("right border", rightBorder);
 	waitKey(0);
 }
-	
+
 void testComputeDownBorder() {
 	// partea asta o lasam comentata pana spre finalul proiectului. LUCRAM DOAR PE CAMERAMAN
 	/*
@@ -360,7 +321,7 @@ void show(Mat_<uchar> img) {
 void testLeftBorder() {
 	Mat_<uchar> img = imread(fname, IMREAD_GRAYSCALE);
 	Mat_<uchar> left = computeLeftBorder(img, 2);
-	
+
 	show(img);
 	show(left);
 }
@@ -380,7 +341,7 @@ int main()
 {
 	int op;
 	do
-		{
+	{
 		system("cls");
 		destroyAllWindows();
 		printf("Menu:\n");
@@ -416,7 +377,7 @@ int main()
 			break;
 		case 6:
 			testComputeUpBorder();
-		break;
+			break;
 		case 7:
 			testComputeRightBorder();
 			break;
@@ -427,6 +388,6 @@ int main()
 			testComputeLeftBorder();
 			break;
 		}
-	} 	while (op != 0);
+	} while (op != 0);
 	return 0;
 }
