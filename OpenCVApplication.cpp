@@ -352,6 +352,161 @@ void testMatchingBorders()
 	waitKey(0);
 }
 
+std::vector<Mat_<uchar>> shuffleSections(std::vector<Mat_<uchar>> sections) {
+	std::vector<Mat_<uchar>> randomSections;
+	randomSections = sections;
+	srand(time(NULL));
+	int size = randomSections.size();
+	for (int i = 0; i < size; i++) {
+		int k = rand() * rand() % size;
+		swap(randomSections[i], randomSections[k]);
+	}
+
+	return randomSections;
+}
+
+double computeUpMatching(Mat_ <uchar> firstSection, Mat_ <uchar> secondSection) {
+	Mat_ <uchar> upBorder = computeUpBorder(firstSection, testK);
+	Mat_ <uchar> downBorder = computeDownBorder(secondSection, testK);
+
+	/*
+	imshow("UpFirst", upBorder);       // afiseaza sectiunea 1
+	imshow("UpSecond", downBorder);       // afiseaza sectiunea 2
+	//waitKey(0);
+	*/
+
+	return computeRMSE(upBorder, downBorder);
+}
+
+double computeRightMatching(Mat_ <uchar> firstSection, Mat_ <uchar> secondSection) {
+	Mat_ <uchar> rightBorder = computeRightBorder(firstSection, testK);
+	Mat_ <uchar> leftBorder = computeLeftBorder(secondSection, testK);
+
+	/*
+	imshow("RightFirst", rightBorder);       // afiseaza sectiunea 1
+	imshow("RightSecond", leftBorder);       // afiseaza sectiunea 2
+	//waitKey(0);
+	*/
+
+	return computeRMSE(rightBorder, leftBorder);
+}
+
+double computeDownMatching(Mat_ <uchar> firstSection, Mat_ <uchar> secondSection) {
+	Mat_ <uchar> downBorder = computeDownBorder(firstSection, testK);
+	Mat_ <uchar> upBorder = computeUpBorder(secondSection, testK);
+
+	/*
+	imshow("DownFirst", downBorder);       // afiseaza sectiunea 1
+	imshow("DownSecond", upBorder);       // afiseaza sectiunea 2
+	//waitKey(0);
+	*/
+
+	return computeRMSE(downBorder, upBorder);
+}
+
+double computeLeftMatching(Mat_ <uchar> firstSection, Mat_ <uchar> secondSection) {
+	Mat_ <uchar> leftBorder = computeLeftBorder(firstSection, testK);
+	Mat_ <uchar> rightBorder = computeRightBorder(secondSection, testK);
+
+	/*
+	imshow("LeftFirst", leftBorder);       // afiseaza sectiunea 1
+	imshow("LeftSecond", rightBorder);       // afiseaza sectiunea 2
+	//waitKey(0);
+	*/
+
+	return computeRMSE(leftBorder, rightBorder);
+}
+
+double computeScore(std::vector<Mat_<uchar>> sections) {
+	double totalScore = 0;
+	int size = sections.size();
+
+	// sections[0] - FIXAT
+
+	for (int i = 0; i < size - 1; i++) {
+		Mat_<uchar> firstSection = sections[i];
+
+		for (int j = i + 1; j < size; j++) {
+
+			//for each rotation...
+
+			// for each pair of sections
+			Mat_<uchar> secondSection = sections[j];
+			
+			// todo: check Up, Right, Down, Left matching
+
+			double upMatching = computeUpMatching(firstSection, secondSection);
+			double rightMatching = computeRightMatching(firstSection, secondSection);
+			double downMatching = computeDownMatching(firstSection, secondSection);
+			double leftMatching = computeLeftMatching(firstSection, secondSection);
+
+			printf("Between %d and %d:\n", i, j);
+			printf("UP = %f\n", upMatching);
+			printf("RIGHT = %f\n", rightMatching);
+			printf("DOWN = %f\n", downMatching);
+			printf("LEFT = %f\n", leftMatching);
+				
+			printf("\n");
+			//printf("(i = %d, j = %d)\n", i, j);
+
+		}
+	}
+	return totalScore;
+}
+
+void testPuzzle(){
+
+	Mat_<uchar> src; // matricea sursa
+	src = imread(fname, IMREAD_GRAYSCALE);
+
+	std::vector<Mat_<uchar>> sections = sectionImage(src);
+	double inputScore = computeScore(sections);
+
+	
+	//std::vector<Mat_<uchar>> randomSections = shuffleSections(sections);
+	//double outputScore = computeScore(randomSections);
+	
+	//namedWindow() // google
+	
+	imshow("Input0", sections[0]);       // afiseaza sectiunea 1
+	imshow("Input1", sections[1]);       // afiseaza sectiunea 2
+	imshow("Input2", sections[2]);       // afiseaza sectiunea 3
+	imshow("Input3", sections[3]);       // afiseaza sectiunea 4
+	/*
+	imshow("Output0", randomSections[0]);       // afiseaza sectiunea 1
+	imshow("Output1", randomSections[1]);       // afiseaza sectiunea 2
+	imshow("Output2", randomSections[2]);       // afiseaza sectiunea 3
+	imshow("Output3", randomSections[3]);       // afiseaza sectiunea 4
+	*/
+	waitKey(0); // asteapta apasarea unei taste
+	
+}
+
+void testPuzzleMatching() {
+	Mat_<uchar> src; // matricea sursa
+	src = imread(fname, IMREAD_GRAYSCALE);
+
+	std::vector<Mat_<uchar>> sections = sectionImage(src);
+
+	Mat_ <uchar> firstSection = sections[0];
+	Mat_ <uchar> secondSection = sections[2];
+
+
+
+	double upMatching = computeUpMatching(firstSection, secondSection);
+	double rightMatching = computeRightMatching(firstSection, secondSection);
+	double downMatching = computeDownMatching(firstSection, secondSection);
+	double leftMatching = computeLeftMatching(firstSection, secondSection);
+	printf("UP = %f\n", upMatching);
+	printf("RIGHT = %f\n", rightMatching);
+	printf("DOWN = %f\n", downMatching);
+	printf("LEFT = %f\n", leftMatching);
+
+	imshow("Input0", firstSection);       // afiseaza sectiunea 1
+	imshow("Input1", secondSection);       // afiseaza sectiunea 2
+	waitKey(0);
+}
+
 int main()
 {
 	int op;
@@ -369,6 +524,8 @@ int main()
 		printf(" 7 - Right border /todo\n");
 		printf(" 8 - Down border \n");
 		printf(" 9 - Left border /todo\n");
+		printf(" 20 - Test Puzzle\n");
+		printf(" 21 - Test Puzzle Matching\n");
 		printf(" 31 - Test Matching Borders\n");
 
 		printf(" 0 - Exit\n\n");
@@ -403,9 +560,19 @@ int main()
 		case 9:
 			testComputeLeftBorder();
 			break;
+		// ANDREI
+		// SASA
+		case 20:
+			testPuzzle();
+			break;
+		case 21:
+			testPuzzleMatching();
+			break;
+		// IULIA
 		case 31:
 			testMatchingBorders();
 			break;
+		// DIANA
 		}
 	} while (op != 0);
 	return 0;
