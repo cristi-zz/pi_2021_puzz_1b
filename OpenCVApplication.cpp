@@ -11,8 +11,8 @@ using namespace std;
 
 // variabile globale pe care o sa le folosim pana spre finalul proiectului pt TESTARE
 char fname[MAX_PATH] = "Images/cameraman.bmp";
-const int testK = 10;
-
+const int TEST_K = 10;
+const int SECTION_LENGTH = 300;
 
 void testOpenImage()
 {
@@ -246,7 +246,7 @@ void testComputeUpBorder() {
 	src = imread(fname, IMREAD_GRAYSCALE);
 
 	int k = 10;
-	Mat_<uchar> upBorder = computeUpBorder(src, testK);
+	Mat_<uchar> upBorder = computeUpBorder(src, TEST_K);
 
 	imshow("original", src);
 	imshow("up border", upBorder);
@@ -264,7 +264,7 @@ void testComputeRightBorder() {
 	src = imread(fname, IMREAD_GRAYSCALE);
 
 	int k = 10;
-	Mat_<uchar> rightBorder = computeRightBorder(src, testK);
+	Mat_<uchar> rightBorder = computeRightBorder(src, TEST_K);
 
 	imshow("original", src);
 	imshow("right border", rightBorder);
@@ -282,7 +282,7 @@ void testComputeDownBorder() {
 	src = imread(fname, IMREAD_GRAYSCALE);
 
 	int k = 10;
-	Mat_<uchar> downBorder = computeDownBorder(src, testK);
+	Mat_<uchar> downBorder = computeDownBorder(src, TEST_K);
 
 	imshow("original", src);
 	imshow("down border", downBorder);
@@ -300,7 +300,7 @@ void testComputeLeftBorder() {
 	src = imread(fname, IMREAD_GRAYSCALE);
 
 	int k = 10;
-	Mat_<uchar> leftBorder = computeLeftBorder(src, testK);
+	Mat_<uchar> leftBorder = computeLeftBorder(src, TEST_K);
 
 	imshow("original", src);
 	imshow("left border", leftBorder);
@@ -366,8 +366,8 @@ std::vector<Mat_<uchar>> shuffleSections(std::vector<Mat_<uchar>> sections) {
 }
 
 double computeUpMatching(Mat_ <uchar> firstSection, Mat_ <uchar> secondSection) {
-	Mat_ <uchar> upBorder = computeUpBorder(firstSection, testK);
-	Mat_ <uchar> downBorder = computeDownBorder(secondSection, testK);
+	Mat_ <uchar> upBorder = computeUpBorder(firstSection, TEST_K);
+	Mat_ <uchar> downBorder = computeDownBorder(secondSection, TEST_K);
 
 	/*
 	imshow("UpFirst", upBorder);       // afiseaza sectiunea 1
@@ -379,8 +379,8 @@ double computeUpMatching(Mat_ <uchar> firstSection, Mat_ <uchar> secondSection) 
 }
 
 double computeRightMatching(Mat_ <uchar> firstSection, Mat_ <uchar> secondSection) {
-	Mat_ <uchar> rightBorder = computeRightBorder(firstSection, testK);
-	Mat_ <uchar> leftBorder = computeLeftBorder(secondSection, testK);
+	Mat_ <uchar> rightBorder = computeRightBorder(firstSection, TEST_K);
+	Mat_ <uchar> leftBorder = computeLeftBorder(secondSection, TEST_K);
 
 	/*
 	imshow("RightFirst", rightBorder);       // afiseaza sectiunea 1
@@ -392,8 +392,8 @@ double computeRightMatching(Mat_ <uchar> firstSection, Mat_ <uchar> secondSectio
 }
 
 double computeDownMatching(Mat_ <uchar> firstSection, Mat_ <uchar> secondSection) {
-	Mat_ <uchar> downBorder = computeDownBorder(firstSection, testK);
-	Mat_ <uchar> upBorder = computeUpBorder(secondSection, testK);
+	Mat_ <uchar> downBorder = computeDownBorder(firstSection, TEST_K);
+	Mat_ <uchar> upBorder = computeUpBorder(secondSection, TEST_K);
 
 	/*
 	imshow("DownFirst", downBorder);       // afiseaza sectiunea 1
@@ -405,8 +405,8 @@ double computeDownMatching(Mat_ <uchar> firstSection, Mat_ <uchar> secondSection
 }
 
 double computeLeftMatching(Mat_ <uchar> firstSection, Mat_ <uchar> secondSection) {
-	Mat_ <uchar> leftBorder = computeLeftBorder(firstSection, testK);
-	Mat_ <uchar> rightBorder = computeRightBorder(secondSection, testK);
+	Mat_ <uchar> leftBorder = computeLeftBorder(firstSection, TEST_K);
+	Mat_ <uchar> rightBorder = computeRightBorder(secondSection, TEST_K);
 
 	/*
 	imshow("LeftFirst", leftBorder);       // afiseaza sectiunea 1
@@ -454,6 +454,12 @@ double computeScore(std::vector<Mat_<uchar>> sections) {
 	return totalScore;
 }
 
+void showImage(const char* name, Mat image) {
+	namedWindow("input 0", WINDOW_NORMAL);
+	resizeWindow("input 0", SECTION_LENGTH, SECTION_LENGTH);
+	imshow(name, image);
+}
+
 void testPuzzle(){
 
 	Mat_<uchar> src; // matricea sursa
@@ -468,6 +474,9 @@ void testPuzzle(){
 	
 	//namedWindow() // google
 	
+	showImage("input 0", sections[0]);
+
+	/*
 	imshow("Input0", sections[0]);       // afiseaza sectiunea 1
 	imshow("Input1", sections[1]);       // afiseaza sectiunea 2
 	imshow("Input2", sections[2]);       // afiseaza sectiunea 3
