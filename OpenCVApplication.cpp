@@ -454,10 +454,15 @@ double computeScore(std::vector<Mat_<uchar>> sections) {
 	return totalScore;
 }
 
+// USE THIS FUNCTION TO PRINT SECTIONS (it resize them to be bigger)
 void showImage(const char* name, Mat image) {
-	namedWindow("input 0", WINDOW_NORMAL);
-	resizeWindow("input 0", SECTION_LENGTH, SECTION_LENGTH);
+	namedWindow(name, WINDOW_NORMAL);
+	resizeWindow(name, SECTION_LENGTH, SECTION_LENGTH);
 	imshow(name, image);
+}
+
+int findBestMatchIndex(Mat_<uchar> puzzleSection, std::vector<Mat_<uchar>> unusedSections) {
+	return 0;
 }
 
 void testPuzzle(){
@@ -466,15 +471,55 @@ void testPuzzle(){
 	src = imread(fname, IMREAD_GRAYSCALE);
 
 	std::vector<Mat_<uchar>> sections = sectionImage(src);
-	double inputScore = computeScore(sections);
+
+	std::vector<Mat_<uchar>> usedSections = {sections[0]};
+	sections.erase(sections.begin());
+	std::vector<Mat_<uchar>> unusedSections = sections;
+
+	//cout << usedSections.size() << " " << unusedSections.size();	
 
 	
+	//double inputScore = computeScore(sections);
+
+	int puzzleRows = 2;
+	int puzzleCols = 2;
+	int puzzleIndex = 0;
+
+	for (int i = 0; i < puzzleRows; i++) {
+		for (int j = 0; j < puzzleCols; j++) {
+
+			if (i == 0 && j == 0) {
+				// top-left corner piece is fixed, so skip this one
+				continue;
+			}
+
+			int bestMatchIndex = findBestMatchIndex(usedSections[puzzleIndex], unusedSections);
+			usedSections.push_back(unusedSections[bestMatchIndex]);
+			
+			unusedSections.erase(unusedSections.begin() + bestMatchIndex);
+
+			puzzleIndex++;
+			
+			cout << "pIndex" << puzzleIndex << " used " << usedSections.size() << " - unused " << unusedSections.size() << "\n";
+
+		}
+	}
+	
+	int solutionIndex = 0;
+	for (int i = 0; i < puzzleRows; i++) {
+		for (int j = 0; j < puzzleCols; j++) {
+
+			string stringSectionName = "Solution(" + std::to_string(i) + ")(" + std::to_string(j) + ")";
+			const char* sectionName = stringSectionName.c_str();
+			showImage(sectionName, usedSections[solutionIndex]);
+			solutionIndex++;
+		}
+
+	}
+
+
 	//std::vector<Mat_<uchar>> randomSections = shuffleSections(sections);
 	//double outputScore = computeScore(randomSections);
-	
-	//namedWindow() // google
-	
-	showImage("input 0", sections[0]);
 
 	/*
 	imshow("Input0", sections[0]);       // afiseaza sectiunea 1
