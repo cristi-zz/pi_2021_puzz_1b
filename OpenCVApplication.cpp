@@ -11,7 +11,11 @@ using namespace std;
 
 // variabile globale pe care o sa le folosim pana spre finalul proiectului pt TESTARE
 char fname[MAX_PATH] = "Images/cameraman.bmp";
-const int TEST_K = 10;
+// EXPERIMENTAT CU VALORI DIFERITE
+int TEST_K = 10; 
+int PUZZLE_ROWS = 2;
+int PUZZLE_COLS = 2;
+
 const int SECTION_LENGTH = 300;
 
 void testOpenImage()
@@ -479,119 +483,90 @@ int computeCheckCode(int row, int col) {
 
 int findBestMatchIndex(int row, int col, int puzzleCols, std::vector<Mat_<uchar>> usedSections, std::vector<Mat_<uchar>> unusedSections) {
 	// precondition: (row, col) != (0, 0) [which is fixed]
+	
 	int leftIndex = usedSections.size() - 1;
 	int upIndex = usedSections.size() - puzzleCols;
-
-	cout << "For [ " << row << " " << col << " ] left index = " << leftIndex << " / up index = " << upIndex << "\n";
-
+	// see what we have to check
 	int checkCode = computeCheckCode(row, col);
 	
 	switch (checkCode) {
 		case CHECK_ONLY_LEFT: {
-
+			// compute left section (from puzzle)
 			Mat_ <uchar> leftSection = usedSections[leftIndex];
 			std::vector<double> rightMatches = {};
 			
+			// compute matches for all candidate sections
 			for (int i = 0; i < unusedSections.size(); i++) {
 				Mat_ <uchar> candidateSection = unusedSections[i];
+				//todo ROTATE
 				rightMatches.push_back(computeRightMatching(leftSection, candidateSection));
 			}
 
-			//todo select min
+			// select min match (the best one)
 			int minElementIndex = std::min_element(rightMatches.begin(), rightMatches.end()) - rightMatches.begin();
-			
-			for (int i = 0; i < rightMatches.size(); i++) {
-				cout << rightMatches[i] << " ";
-			}
-			cout << minElementIndex << "\n";
 			return minElementIndex;
 		}
 		case CHECK_ONLY_UP: {
-
+			// compute up section (from puzzle)
 			Mat_ <uchar> upSection = usedSections[upIndex];
 			std::vector<double> downMatches = {};
 
+			// compute matches for all candidate sections
 			for (int i = 0; i < unusedSections.size(); i++) {
 				Mat_ <uchar> candidateSection = unusedSections[i];
+				//todo ROTATE
 				downMatches.push_back(computeDownMatching(upSection, candidateSection));
 			}
 
-			//todo select min
+			// select min match (the best one)
 			int minElementIndex = std::min_element(downMatches.begin(), downMatches.end()) - downMatches.begin();
-			cout << minElementIndex << "\n";
 			return minElementIndex;
 		}
 		case CHECK_BOTH: {
-
+			// compute left section (from puzzle)
 			Mat_ <uchar> leftSection = usedSections[leftIndex];
 			std::vector<double> rightMatches = {};
 
+			// compute up section (from puzzle)
 			Mat_ <uchar> upSection = usedSections[upIndex];
 			std::vector<double> downMatches = {};
 
+			std::vector<double> matches = {}; // averages of the 2 matches
+			// compute matches for all candidate sections
 			for (int i = 0; i < unusedSections.size(); i++) {
 				Mat_ <uchar> candidateSection = unusedSections[i];
+				// TODO rotate
 				rightMatches.push_back(computeRightMatching(leftSection, candidateSection));
 				downMatches.push_back(computeDownMatching(upSection, candidateSection));
-			}
-
-			std::vector<double> matches = {};
-			for (int i = 0; i < unusedSections.size(); i++) {
+				// compute average betweens this 2 values
 				double match = (rightMatches[i] + downMatches[i]) / 2.0;
 				matches.push_back(match);
 			}
-
-			//todo select min
+			
+			// select min match (the best one)
 			int minElementIndex = std::min_element(matches.begin(), matches.end()) - matches.begin();
-			cout << minElementIndex << "\n";
 			return minElementIndex;
 		}
 	}
-
-	/*
-	for (int i = 0; i < unusedSections.size(); i++) {
-
-		Mat_ <uchar> candidateSection = unusedSections[i];
-		double matching = 0.0f;
-
-		switch (checkCode) {
-			case CHECK_ONLY_LEFT: {
-				Mat_ <uchar> leftSection = usedSections[leftIndex];
-				matching = computeRightMatching(leftSection, candidateSection);
-				cout << "LEFT ";
-				cout << matching << "\n";
-				break;
-			}
-			case CHECK_ONLY_UP: {
-				Mat_ <uchar> upSection = usedSections[upIndex];
-				matching = computeDownMatching(upSection, candidateSection);
-				cout << "UP ";
-				cout << matching << "\n";
-				break;
-			}
-			case CHECK_BOTH:{
-				Mat_ <uchar> leftSection = usedSections[leftIndex];
-				double rightMatching = computeRightMatching(leftSection, candidateSection);
-				Mat_ <uchar> upSection = usedSections[upIndex];
-				double downMatching = computeDownMatching(upSection, candidateSection);
-				cout << "LEFT " << rightMatching << " . UP " << downMatching << "\n";
-				matching = (rightMatching + downMatching) / 2.0;
-				cout << "LEFT & UP " << matching << "\n";
-				break;
-			}
-		}
-	}
-
-	//TODO
-	return 0;
-	*/
 }
 
-void displayPuzzle (int puzzleRows, int puzzleCols, std::vector<Mat_<uchar>> usedSections) {
+void displayPuzzleInput(int puzzleRows, int puzzleCols, std::vector<Mat_<uchar>> sections) {
 	int solutionIndex = 0;
 	for (int i = 0; i < puzzleRows; i++) {
 		for (int j = 0; j < puzzleCols; j++) {
-			string stringSectionName = "Solution(" + std::to_string(i) + ")(" + std::to_string(j) + ")";
+			string stringSectionName = "Input[" + std::to_string(i) + "][" + std::to_string(j) + "]";
+			const char* sectionName = stringSectionName.c_str();
+			showImage(sectionName, sections[solutionIndex]);
+			solutionIndex++;
+		}
+	}
+}
+
+void displayPuzzleSolution(int puzzleRows, int puzzleCols, std::vector<Mat_<uchar>> usedSections) {
+	int solutionIndex = 0;
+	for (int i = 0; i < puzzleRows; i++) {
+		for (int j = 0; j < puzzleCols; j++) {
+			string stringSectionName = "Solution[" + std::to_string(i) + "][" + std::to_string(j) + "]";
 			const char* sectionName = stringSectionName.c_str();
 			showImage(sectionName, usedSections[solutionIndex]);
 			solutionIndex++;
@@ -600,59 +575,38 @@ void displayPuzzle (int puzzleRows, int puzzleCols, std::vector<Mat_<uchar>> use
 }
 
 void testPuzzle(){
-
 	Mat_<uchar> src; // matricea sursa
 	src = imread(fname, IMREAD_GRAYSCALE);
 
+	// generate input
 	std::vector<Mat_<uchar>> sections = sectionImage(src);
+	// TODO: shuffleSections(sections); // o functie care sa modifice ordinea sectiunilor, dar sections[0] sa ramana pe aceeasi pozitie
+	sections = { sections[0], sections[3], sections[1], sections[2] };
+	// print input
+	displayPuzzleInput(PUZZLE_ROWS, PUZZLE_COLS, sections);
 
-	sections = { sections[0], sections[3], sections[2], sections[1] };
-	
-	showImage("Input 0", sections[0]);
-	showImage("Input 1", sections[1]);
-	showImage("Input 2", sections[2]);
-	showImage("Input 3", sections[3]);
-
-
-	//std::vector<Mat_<uchar>> randomSections = shuffleSections(sections);
-	
-	//sections = randomSections;
 
 	std::vector<Mat_<uchar>> usedSections = {sections[0]};
 	sections.erase(sections.begin());
 	std::vector<Mat_<uchar>> unusedSections = sections;
 
-	//cout << usedSections.size() << " " << unusedSections.size();	
-	//double inputScore = computeScore(sections);
-
-	int puzzleRows = 2;
-	int puzzleCols = 2;
-	int puzzleIndex = 0;
-
-	for (int i = 0; i < puzzleRows; i++) {
-		for (int j = 0; j < puzzleCols; j++) {
+	for (int i = 0; i < PUZZLE_ROWS; i++) {
+		for (int j = 0; j < PUZZLE_COLS; j++) {
 
 			// top-left corner piece is fixed, so skip this one
 			if (i == 0 && j == 0) {
 				continue;
 			}
 
-			int bestMatchIndex = findBestMatchIndex(i, j, puzzleCols, usedSections, unusedSections);
+			int bestMatchIndex = findBestMatchIndex(i, j, PUZZLE_COLS, usedSections, unusedSections);
 			usedSections.push_back(unusedSections[bestMatchIndex]);
 			unusedSections.erase(unusedSections.begin() + bestMatchIndex);
 		}
 	}
-	
-	displayPuzzle(puzzleRows, puzzleCols, usedSections);
 
-	
-
-
-	//std::vector<Mat_<uchar>> randomSections = shuffleSections(sections);
-	//double outputScore = computeScore(randomSections);
-
+	// print solution
+	displayPuzzleSolution(PUZZLE_ROWS, PUZZLE_COLS, usedSections);
 	waitKey(0); // asteapta apasarea unei taste
-	
 }
 
 void testPuzzleMatching() {
@@ -680,6 +634,12 @@ void testPuzzleMatching() {
 	waitKey(0);
 }
 
+void testMultipleCases() {
+	// TODO: TEST ON
+	//			multiple images [change src]
+	//			different puzzle dimensions [change puzzleRows/puzzleCols]
+	//			different depths [change test_k]
+}
 int main()
 {
 	int op;
@@ -740,6 +700,9 @@ int main()
 			break;
 		case 21:
 			testPuzzleMatching();
+			break;
+		case 22:
+			testMultipleCases();
 			break;
 		// IULIA
 		case 31:
