@@ -13,10 +13,43 @@ using namespace std;
 char fname[MAX_PATH] = "Images/cameraman.bmp";
 // EXPERIMENTAT CU VALORI DIFERITE
 int TEST_K = 10; 
-int PUZZLE_ROWS = 2;
-int PUZZLE_COLS = 2;
+int PUZZLE_ROWS = 3;
+int PUZZLE_COLS = 3;
 
-const int SECTION_LENGTH = 300;
+const int SECTION_LENGTH = 250;
+
+// USE THIS FUNCTION TO PRINT SECTIONS (it resize them to be bigger)
+void showImage(const char* name, Mat image) {
+	namedWindow(name, WINDOW_NORMAL);
+	resizeWindow(name, SECTION_LENGTH, SECTION_LENGTH);
+	imshow(name, image);
+}
+
+void displayPuzzleInput(int puzzleRows, int puzzleCols, std::vector<Mat_<uchar>> sections) {
+	int solutionIndex = 0;
+	//if (sections.size() != PUZZLE_ROWS * PUZZLE_COLS) printf("WTF?");
+
+	for (int i = 0; i < puzzleRows; i++) {
+		for (int j = 0; j < puzzleCols; j++) {
+			string stringSectionName = "Input[" + std::to_string(i) + "][" + std::to_string(j) + "]";
+			const char* sectionName = stringSectionName.c_str();
+			showImage(sectionName, sections[solutionIndex]);
+			solutionIndex++;
+		}
+	}
+}
+
+void displayPuzzleSolution(int puzzleRows, int puzzleCols, std::vector<Mat_<uchar>> usedSections) {
+	int solutionIndex = 0;
+	for (int i = 0; i < puzzleRows; i++) {
+		for (int j = 0; j < puzzleCols; j++) {
+			string stringSectionName = "Solution[" + std::to_string(i) + "][" + std::to_string(j) + "]";
+			const char* sectionName = stringSectionName.c_str();
+			showImage(sectionName, usedSections[solutionIndex]);
+			solutionIndex++;
+		}
+	}
+}
 
 void testOpenImage()
 {
@@ -145,49 +178,50 @@ std::vector<Mat_<uchar>> sectionImage(Mat_<uchar> src) {
 	// se creeaza std::vector-ul de cadrane extrase din imaginea sursa
 	std::vector<Mat_<uchar>> sections = {};
 
-	// se stabilesc dimensiunile
+	// se stabilesc dimensiunile noilor imagini
 	int height, width;
-	height = src.rows / 2;
-	width = src.cols / 2;
+	height = src.rows / PUZZLE_ROWS;
+	width = src.cols / PUZZLE_COLS;
 
-	// colt stanga-sus
-	Mat_<uchar> section1 = getSection(src, 0, 0, height, width);
-	sections.push_back(section1); // se adauga sectiunea extrasa in std::vector-ul de sectiuni
+	//numarul total de imagini/sectiuni
+	int nrImg;
+	nrImg = PUZZLE_ROWS * PUZZLE_COLS;
 
-	// colt dreapta-sus
-	Mat_<uchar> section2 = getSection(src, 0, width, height, width);
-	sections.push_back(section2);
+	int auxRows, auxCols;
+	auxRows = 0;
+	auxCols = 0;
 
-	// colt stanga-jos
-	Mat_<uchar> section3 = getSection(src, height, 0, height, width);
-	sections.push_back(section3);
-
-	// colt dreapta-jos
-	Mat_<uchar> section4 = getSection(src, height, width, height, width);
-	sections.push_back(section4);
-
+	for (int i = 0; i < PUZZLE_ROWS; i++) {
+		for (int j = 0; j < PUZZLE_COLS; j++) {
+			Mat_<uchar> section = getSection(src, auxRows, auxCols, height, width);
+			sections.push_back(section);
+			auxCols += width;
+		}
+		auxRows += height;
+		auxCols = 0;
+	}
 	return sections;
+
 }
 
-void testSectionImage()
-{
-	// partea asta o lasam comentata pana spre finalul proiectului. LUCRAM DOAR PE CAMERAMAN
-	/*
-	char fname[MAX_PATH];
-	openFileDlg(fname);
-	*/
-
+void testSectionImage() {
 	Mat_<uchar> src; // matricea sursa
 	src = imread(fname, IMREAD_GRAYSCALE);
 
-	std::vector<Mat_<uchar>> images = sectionImage(src);
-	imshow("section1", images[0]);       // afiseaza sectiunea 1
-	imshow("section2", images[1]);       // afiseaza sectiunea 2
-	imshow("section3", images[2]);       // afiseaza sectiunea 3
-	imshow("section4", images[3]);       // afiseaza sectiunea 4
+	std::vector<Mat_<uchar>> sections = sectionImage(src);
+	displayPuzzleInput(PUZZLE_ROWS, PUZZLE_COLS, sections);
+	waitKey(0);
+	/*
+	for (int i = 0; i < PUZZLE_ROWS; i++) {
+		for (int j = 0; j < PUZZLE_COLS; j++) {
+			string stringSectionName = "Input " + std::to_string(i);
+			const char* sectionName = stringSectionName.c_str();
+			showImage(sectionName, images[i]);
+		}	
+	}
 	waitKey(0); // asteapta apasarea unei taste
+	*/
 }
-
 
 Mat_<uchar> computeUpBorder(Mat_<uchar> src, int k) {
 	Mat_<uchar> border = Mat_<uchar>(k, src.cols);
@@ -356,15 +390,12 @@ void testMatchingBorders()
 	waitKey(0);
 }
 
+// TODO:
 std::vector<Mat_<uchar>> shuffleSections(std::vector<Mat_<uchar>> sections) {
 	std::vector<Mat_<uchar>> randomSections;
-	randomSections = sections;
-	srand(time(NULL));
-	int size = randomSections.size();
-	for (int i = 0; i < size; i++) {
-		int k = rand() * rand() % size;
-		swap(randomSections[i], randomSections[k]);
-	}
+	// TODO: o functie care sa modifice ordinea sectiunilor, dar sections[0] sa ramana pe aceeasi pozitie
+	randomSections = { sections[0],
+						sections[8], sections[7], sections[2], sections[3], sections[4], sections[6], sections[5], sections[1] };
 
 	return randomSections;
 }
@@ -458,12 +489,6 @@ double computeScore(std::vector<Mat_<uchar>> sections) {
 	return totalScore;
 }
 
-// USE THIS FUNCTION TO PRINT SECTIONS (it resize them to be bigger)
-void showImage(const char* name, Mat image) {
-	namedWindow(name, WINDOW_NORMAL);
-	resizeWindow(name, SECTION_LENGTH, SECTION_LENGTH);
-	imshow(name, image);
-}
 
 enum CheckCodes {CHECK_ONLY_LEFT, CHECK_ONLY_UP, CHECK_BOTH};
 int computeCheckCode(int row, int col) {
@@ -550,45 +575,19 @@ int findBestMatchIndex(int row, int col, int puzzleCols, std::vector<Mat_<uchar>
 	}
 }
 
-void displayPuzzleInput(int puzzleRows, int puzzleCols, std::vector<Mat_<uchar>> sections) {
-	int solutionIndex = 0;
-	for (int i = 0; i < puzzleRows; i++) {
-		for (int j = 0; j < puzzleCols; j++) {
-			string stringSectionName = "Input[" + std::to_string(i) + "][" + std::to_string(j) + "]";
-			const char* sectionName = stringSectionName.c_str();
-			showImage(sectionName, sections[solutionIndex]);
-			solutionIndex++;
-		}
-	}
-}
-
-void displayPuzzleSolution(int puzzleRows, int puzzleCols, std::vector<Mat_<uchar>> usedSections) {
-	int solutionIndex = 0;
-	for (int i = 0; i < puzzleRows; i++) {
-		for (int j = 0; j < puzzleCols; j++) {
-			string stringSectionName = "Solution[" + std::to_string(i) + "][" + std::to_string(j) + "]";
-			const char* sectionName = stringSectionName.c_str();
-			showImage(sectionName, usedSections[solutionIndex]);
-			solutionIndex++;
-		}
-	}
-}
-
 void testPuzzle(){
 	Mat_<uchar> src; // matricea sursa
 	src = imread(fname, IMREAD_GRAYSCALE);
 
-	// generate input
-	std::vector<Mat_<uchar>> sections = sectionImage(src);
-	// TODO: shuffleSections(sections); // o functie care sa modifice ordinea sectiunilor, dar sections[0] sa ramana pe aceeasi pozitie
-	sections = { sections[0], sections[3], sections[1], sections[2] };
-	// print input
-	displayPuzzleInput(PUZZLE_ROWS, PUZZLE_COLS, sections);
+	// computing the input
+	std::vector<Mat_<uchar>> sections = sectionImage(src); // get the pieces of puzzle
+ 	sections = shuffleSections(sections); // shuffle them
+	displayPuzzleInput(PUZZLE_ROWS, PUZZLE_COLS, sections); // and display them
 
-
-	std::vector<Mat_<uchar>> usedSections = {sections[0]};
+	// solve the puzzle
+	std::vector<Mat_<uchar>> usedSections = {sections[0]}; // pieces that are already fixed in the puzzle solution
 	sections.erase(sections.begin());
-	std::vector<Mat_<uchar>> unusedSections = sections;
+	std::vector<Mat_<uchar>> unusedSections = sections; // pieces that will be tested
 
 	for (int i = 0; i < PUZZLE_ROWS; i++) {
 		for (int j = 0; j < PUZZLE_COLS; j++) {
@@ -654,10 +653,10 @@ int main()
 		printf(" 4 - RMSE\n");
 		printf(" 5 - Section image\n");
 		printf(" 6 - Up border \n");
-		printf(" 7 - Right border /todo\n");
+		printf(" 7 - Right border \n");
 		printf(" 8 - Down border \n");
-		printf(" 9 - Left border /todo\n");
-		printf(" 20 - Test Puzzle\n");
+		printf(" 9 - Left border \n");
+		printf(" 20 - Solve Puzzle\n");
 		printf(" 21 - Test Puzzle Matching\n");
 		printf(" 31 - Test Matching Borders\n");
 
