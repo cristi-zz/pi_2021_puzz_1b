@@ -10,13 +10,12 @@
 using namespace std;
 
 // variabile globale pe care o sa le folosim pana spre finalul proiectului pt TESTARE
-char fname[MAX_PATH] = "Images/cameraman.bmp";
+char fname[MAX_PATH] = "Images/saturn.bmp";
+const int SECTION_LENGTH = 250;
 // EXPERIMENTAT CU VALORI DIFERITE
 int TEST_K = 10; 
-int PUZZLE_ROWS = 3;
-int PUZZLE_COLS = 3;
-
-const int SECTION_LENGTH = 250;
+int PUZZLE_ROWS = 3; // nu modificati valorile astea doua
+int PUZZLE_COLS = 3; // pana cand nu implementati shuffleSections. (pt ca moemntat e hardcodat pt 3x3)
 
 // USE THIS FUNCTION TO PRINT SECTIONS (it resize them to be bigger)
 void showImage(const char* name, Mat image) {
@@ -264,7 +263,7 @@ Mat_<uchar> computeRightBorder(Mat_<uchar> src, int k) {
 	Mat_<uchar> border = Mat_<uchar>(k, src.cols);
 	//bordura dreapta se va "rasturna" spre stanga
 	for (int i = 0; i < src.rows; i++) {
-		for (int j = src.cols - 1; j >= src.cols - k; j--) {
+		for (int j = src.cols - 1; j >= src.cols - k; j--) {	
 			border(src.cols - 1 - j, i) = src(i, j);
 		}
 	}
@@ -575,17 +574,9 @@ int findBestMatchIndex(int row, int col, int puzzleCols, std::vector<Mat_<uchar>
 	}
 }
 
-void testPuzzle(){
-	Mat_<uchar> src; // matricea sursa
-	src = imread(fname, IMREAD_GRAYSCALE);
-
-	// computing the input
-	std::vector<Mat_<uchar>> sections = sectionImage(src); // get the pieces of puzzle
- 	sections = shuffleSections(sections); // shuffle them
-	displayPuzzleInput(PUZZLE_ROWS, PUZZLE_COLS, sections); // and display them
-
+void solvePuzzle(int puzzleRows, int puzzleCols, std::vector<Mat_<uchar>> sections) {
 	// solve the puzzle
-	std::vector<Mat_<uchar>> usedSections = {sections[0]}; // pieces that are already fixed in the puzzle solution
+	std::vector<Mat_<uchar>> usedSections = { sections[0] }; // pieces that are already fixed in the puzzle solution
 	sections.erase(sections.begin());
 	std::vector<Mat_<uchar>> unusedSections = sections; // pieces that will be tested
 
@@ -606,6 +597,18 @@ void testPuzzle(){
 	// print solution
 	displayPuzzleSolution(PUZZLE_ROWS, PUZZLE_COLS, usedSections);
 	waitKey(0); // asteapta apasarea unei taste
+}
+
+void testPuzzle(){
+	Mat_<uchar> src; // matricea sursa
+	src = imread(fname, IMREAD_GRAYSCALE);
+
+	// computing the input
+	std::vector<Mat_<uchar>> sections = sectionImage(src); // get the pieces of puzzle
+ 	sections = shuffleSections(sections); // shuffle them
+	displayPuzzleInput(PUZZLE_ROWS, PUZZLE_COLS, sections); // and display them
+
+	solvePuzzle(PUZZLE_ROWS, PUZZLE_COLS, sections);
 }
 
 void testPuzzleMatching() {
@@ -633,12 +636,92 @@ void testPuzzleMatching() {
 	waitKey(0);
 }
 
-void testMultipleCases() {
+void multipleCases() {
 	// TODO: TEST ON
 	//			multiple images [change src]
 	//			different puzzle dimensions [change puzzleRows/puzzleCols]
 	//			different depths [change test_k]
+	
+	// test on multiple images // NU MERG IMAGINILE PORTRAIT! FOLOSITI NUMA IMAGINI LANDSCAPE (SAU PATRATE)
+	const int SOURCE_COUNT = 3; // 3 test images
+	char* sources[SOURCE_COUNT] = { "Images/cameraman.bmp", "Images/eight.bmp", "Images/saturn.bmp" };
+	
+	// test on multiple puzzle dimensions
+	const int PUZZLE_ROWS_COUNT = 3; // 3 cases: 1) ROWS = COLS [patrat]; 2) ROWS > COLS [portrait]; 3) ROWS < COLS [landscape]
+	const int PUZZLE_COLS_COUNT = 3; // <same here>
+	const int puzzleRowsValues[PUZZLE_ROWS_COUNT] = { 3, 4, 2 };
+	const int puzzleColsValues[PUZZLE_ROWS_COUNT] = { 3, 2, 4 };
+
+	// test on multiple depths
+	const int DEPTH_COUNT = 3;
+	const int depths[DEPTH_COUNT] = { 5, 10, 15 }; 
+	
+	for (int sourceIndex = 0; sourceIndex < SOURCE_COUNT; sourceIndex++) {
+		// for each image source
+		char* fname = sources[sourceIndex];
+		Mat_<uchar> src = imread(fname, IMREAD_GRAYSCALE);
+
+		for (int puzzleDimensionIndex = 0; puzzleDimensionIndex < PUZZLE_ROWS_COUNT; puzzleDimensionIndex++) {
+			// for each puzzle dimension
+			int puzzleRows = puzzleRowsValues[puzzleDimensionIndex];
+			int puzzleCols = puzzleColsValues[puzzleDimensionIndex];
+
+			// computing the input
+			std::vector<Mat_<uchar>> sections = sectionImage(src); // get the pieces of puzzle
+			sections = shuffleSections(sections); // shuffle them
+			displayPuzzleInput(puzzleRows, puzzleRows, sections); // and display them
+
+			for (int depthIndex = 0; depthIndex < DEPTH_COUNT; depthIndex++) {
+				// for each depth
+				TEST_K = depths[depthIndex];
+
+				printf("Image: %s, Puzzle: %dx%d, Depth: %d\n", fname, puzzleRows, puzzleCols, TEST_K);
+				
+				solvePuzzle(PUZZLE_ROWS, PUZZLE_COLS, sections);
+			}
+		}
+	}
 }
+
+void testMultipleCases() {
+	const int SOURCE_COUNT = 3; // 3 test images
+	char* sources[SOURCE_COUNT] = { "Images/cameraman.bmp", "Images/eight.bmp", "Images/saturn.bmp" };
+
+	// test on multiple puzzle dimensions
+	const int PUZZLE_ROWS_COUNT = 3; // 3 cases: 1) ROWS = COLS [patrat]; 2) ROWS > COLS [portrait]; 3) ROWS < COLS [landscape]
+	const int PUZZLE_COLS_COUNT = 3; // <same here>
+	const int puzzleRowsValues[PUZZLE_ROWS_COUNT] = { 3, 4, 2 };
+	const int puzzleColsValues[PUZZLE_ROWS_COUNT] = { 3, 2, 4 };
+
+	// test on multiple depths
+	const int DEPTH_COUNT = 3;
+	const int depths[DEPTH_COUNT] = { 5, 10, 15 };
+
+	for (int sourceIndex = 0; sourceIndex < SOURCE_COUNT; sourceIndex++) {
+		// for each image source
+		char* fname = sources[sourceIndex];
+		Mat_<uchar> src = imread(fname, IMREAD_GRAYSCALE);
+
+		int puzzleRows = 3;
+		int puzzleCols = 3;
+
+		// computing the input
+		std::vector<Mat_<uchar>> sections = sectionImage(src); // get the pieces of puzzle
+		sections = shuffleSections(sections); // shuffle them
+		displayPuzzleInput(puzzleRows, puzzleRows, sections); // and display them
+
+		for (int depthIndex = 0; depthIndex < DEPTH_COUNT; depthIndex++) {
+			// for each depth
+			TEST_K = depths[depthIndex];
+
+			// show info
+			printf("Image: %s, Puzzle: %dx%d, Depth: %d\n", fname, puzzleRows, puzzleCols, TEST_K);
+
+			solvePuzzle(PUZZLE_ROWS, PUZZLE_COLS, sections);
+		}
+	}
+}
+
 int main()
 {
 	int op;
@@ -658,6 +741,8 @@ int main()
 		printf(" 9 - Left border \n");
 		printf(" 20 - Solve Puzzle\n");
 		printf(" 21 - Test Puzzle Matching\n");
+		printf(" 22 - Puzzle Comparisons\n");
+		printf(" 23 - Test Puzzle Comparisons\n");
 		printf(" 31 - Test Matching Borders\n");
 
 		printf(" 0 - Exit\n\n");
@@ -701,6 +786,9 @@ int main()
 			testPuzzleMatching();
 			break;
 		case 22:
+			multipleCases();
+			break;
+		case 23:
 			testMultipleCases();
 			break;
 		// IULIA
