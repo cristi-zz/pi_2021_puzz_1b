@@ -6,16 +6,18 @@
 #include <math.h>
 #include <vector>
 #include <iostream>
+#include <stdlib.h>
+#include <time.h>
 
 using namespace std;
 
 // variabile globale pe care o sa le folosim pana spre finalul proiectului pt TESTARE
-char fname[MAX_PATH] = "Images/saturn.bmp";
+char fname[MAX_PATH] = "Images/cameraman.bmp";
 const int SECTION_LENGTH = 250;
 // EXPERIMENTAT CU VALORI DIFERITE
-int TEST_K = 10; 
-int PUZZLE_ROWS = 3; // nu modificati valorile astea doua
-int PUZZLE_COLS = 3; // pana cand nu implementati shuffleSections. (pt ca moemntat e hardcodat pt 3x3)
+int DEPTH = 10; 
+int PUZZLE_ROWS = 2; // nu modificati valorile astea doua
+int PUZZLE_COLS = 2; // pana cand nu implementati shuffleSections. (pt ca moemntat e hardcodat pt 3x3)
 
 // USE THIS FUNCTION TO PRINT SECTIONS (it resize them to be bigger)
 void showImage(const char* name, Mat image) {
@@ -25,16 +27,10 @@ void showImage(const char* name, Mat image) {
 }
 
 void displayPuzzleInput(int puzzleRows, int puzzleCols, std::vector<Mat_<uchar>> sections) {
-	int solutionIndex = 0;
-	//if (sections.size() != PUZZLE_ROWS * PUZZLE_COLS) printf("WTF?");
-
-	for (int i = 0; i < puzzleRows; i++) {
-		for (int j = 0; j < puzzleCols; j++) {
-			string stringSectionName = "Input[" + std::to_string(i) + "][" + std::to_string(j) + "]";
-			const char* sectionName = stringSectionName.c_str();
-			showImage(sectionName, sections[solutionIndex]);
-			solutionIndex++;
-		}
+	for (int i = 0; i < sections.size(); i++) {
+		string stringSectionName = "Input[" + std::to_string(i) + "]";
+		const char* sectionName = stringSectionName.c_str();
+		showImage(sectionName, sections[i]);
 	}
 }
 
@@ -109,7 +105,6 @@ void testColor2Gray()
 	}
 }
 
-
 double computeRMSE(Mat_<uchar> first, Mat_<uchar> second) {
 
 	if (first.cols != second.cols || first.rows != second.rows) {
@@ -131,7 +126,6 @@ double computeRMSE(Mat_<uchar> first, Mat_<uchar> second) {
 	rmse = sqrt(rmse / nrOfElements);
 	return rmse;
 }
-
 
 void testRMSE() {
 
@@ -156,7 +150,6 @@ void testRMSE() {
 	waitKey(0);
 }
 
-
 Mat_<uchar> getSection(Mat_<uchar> src, int startRow, int startCol, int height, int width)
 {
 	// se creeaza imaginea cadran de dimensiunea ceruta
@@ -173,25 +166,25 @@ Mat_<uchar> getSection(Mat_<uchar> src, int startRow, int startCol, int height, 
 	return section;
 }
 
-std::vector<Mat_<uchar>> sectionImage(Mat_<uchar> src) {
+std::vector<Mat_<uchar>> sectionImage(Mat_<uchar> src, int puzzleRows, int puzzleCols) {
 	// se creeaza std::vector-ul de cadrane extrase din imaginea sursa
 	std::vector<Mat_<uchar>> sections = {};
 
 	// se stabilesc dimensiunile noilor imagini
 	int height, width;
-	height = src.rows / PUZZLE_ROWS;
-	width = src.cols / PUZZLE_COLS;
+	height = src.rows / puzzleRows;
+	width = src.cols / puzzleCols;
 
 	//numarul total de imagini/sectiuni
 	int nrImg;
-	nrImg = PUZZLE_ROWS * PUZZLE_COLS;
+	nrImg = puzzleRows * puzzleCols;
 
 	int auxRows, auxCols;
 	auxRows = 0;
 	auxCols = 0;
 
-	for (int i = 0; i < PUZZLE_ROWS; i++) {
-		for (int j = 0; j < PUZZLE_COLS; j++) {
+	for (int i = 0; i < puzzleRows; i++) {
+		for (int j = 0; j < puzzleCols; j++) {
 			Mat_<uchar> section = getSection(src, auxRows, auxCols, height, width);
 			sections.push_back(section);
 			auxCols += width;
@@ -207,7 +200,7 @@ void testSectionImage() {
 	Mat_<uchar> src; // matricea sursa
 	src = imread(fname, IMREAD_GRAYSCALE);
 
-	std::vector<Mat_<uchar>> sections = sectionImage(src);
+	std::vector<Mat_<uchar>> sections = sectionImage(src, PUZZLE_ROWS, PUZZLE_COLS);
 	displayPuzzleInput(PUZZLE_ROWS, PUZZLE_COLS, sections);
 	waitKey(0);
 	/*
@@ -247,7 +240,7 @@ Mat_<uchar> computeDownBorder(Mat_<uchar> src, int k) {
 }
 
 Mat_<uchar> computeLeftBorder(Mat_<uchar> src, int k) {
-	Mat_<uchar> border = Mat_<uchar>(k, src.cols);
+	Mat_<uchar> border = Mat_<uchar>(k, src.rows);
 
 	for (int i = 0; i < src.rows; i++) {
 		for (int j = 0; j < k; j++) {
@@ -260,7 +253,7 @@ Mat_<uchar> computeLeftBorder(Mat_<uchar> src, int k) {
 
 Mat_<uchar> computeRightBorder(Mat_<uchar> src, int k) {
 	//transpun bordura verticala dreapta pe orizontala
-	Mat_<uchar> border = Mat_<uchar>(k, src.cols);
+	Mat_<uchar> border = Mat_<uchar>(k, src.rows);
 	//bordura dreapta se va "rasturna" spre stanga
 	for (int i = 0; i < src.rows; i++) {
 		for (int j = src.cols - 1; j >= src.cols - k; j--) {	
@@ -270,7 +263,6 @@ Mat_<uchar> computeRightBorder(Mat_<uchar> src, int k) {
 
 	return border;
 }
-
 
 void testComputeUpBorder() {
 	// partea asta o lasam comentata pana spre finalul proiectului. LUCRAM DOAR PE CAMERAMAN
@@ -283,7 +275,7 @@ void testComputeUpBorder() {
 	src = imread(fname, IMREAD_GRAYSCALE);
 
 	int k = 10;
-	Mat_<uchar> upBorder = computeUpBorder(src, TEST_K);
+	Mat_<uchar> upBorder = computeUpBorder(src, DEPTH);
 
 	imshow("original", src);
 	imshow("up border", upBorder);
@@ -301,7 +293,7 @@ void testComputeRightBorder() {
 	src = imread(fname, IMREAD_GRAYSCALE);
 
 	int k = 10;
-	Mat_<uchar> rightBorder = computeRightBorder(src, TEST_K);
+	Mat_<uchar> rightBorder = computeRightBorder(src, DEPTH);
 
 	imshow("original", src);
 	imshow("right border", rightBorder);
@@ -319,7 +311,7 @@ void testComputeDownBorder() {
 	src = imread(fname, IMREAD_GRAYSCALE);
 
 	int k = 10;
-	Mat_<uchar> downBorder = computeDownBorder(src, TEST_K);
+	Mat_<uchar> downBorder = computeDownBorder(src, DEPTH);
 
 	imshow("original", src);
 	imshow("down border", downBorder);
@@ -337,13 +329,12 @@ void testComputeLeftBorder() {
 	src = imread(fname, IMREAD_GRAYSCALE);
 
 	int k = 10;
-	Mat_<uchar> leftBorder = computeLeftBorder(src, TEST_K);
+	Mat_<uchar> leftBorder = computeLeftBorder(src, DEPTH);
 
 	imshow("original", src);
 	imshow("left border", leftBorder);
 	waitKey(0);
 }
-
 
 void show(Mat_<uchar> img) {
 	for (int i = 0; i < img.rows; i++)
@@ -378,7 +369,7 @@ void testMatchingBorders()
 	Mat_<uchar> src; // matricea sursa
 	src = imread(fname, IMREAD_GRAYSCALE);
 
-	std::vector<Mat_<uchar>> sections = sectionImage(src);
+	std::vector<Mat_<uchar>> sections = sectionImage(src, PUZZLE_ROWS, PUZZLE_COLS);
 
 	Mat_<uchar> img1 = computeRightBorder(sections[0], 40);
 	Mat_<uchar> img2 = computeLeftBorder(sections[1], 40);
@@ -391,17 +382,45 @@ void testMatchingBorders()
 
 // TODO:
 std::vector<Mat_<uchar>> shuffleSections(std::vector<Mat_<uchar>> sections) {
-	std::vector<Mat_<uchar>> randomSections;
-	// TODO: o functie care sa modifice ordinea sectiunilor, dar sections[0] sa ramana pe aceeasi pozitie
-	randomSections = { sections[0],
-						sections[8], sections[7], sections[2], sections[3], sections[4], sections[6], sections[5], sections[1] };
+	std::vector<Mat_<uchar>> randomSections(sections);
+
+	randomSections[0] = sections[0];
+
+	vector<int> visited;
+	visited.push_back(0);
+
+	for (int i = 1; i < sections.size(); i++)
+	{
+		int position;
+		bool bad = true;
+
+		while (bad) {
+			bool found = false;
+
+			position = rand() % sections.size();
+
+			for (int j = 0; j < visited.size(); j++) {
+				if (visited[j] == position) {
+					found = true;
+				}
+			}
+			
+			if (found == false) {
+				bad = false;
+			}
+				
+		}
+
+		randomSections[position] = sections[i];
+		visited.push_back(position);
+	}
 
 	return randomSections;
 }
 
 double computeUpMatching(Mat_ <uchar> firstSection, Mat_ <uchar> secondSection) {
-	Mat_ <uchar> upBorder = computeUpBorder(firstSection, TEST_K);
-	Mat_ <uchar> downBorder = computeDownBorder(secondSection, TEST_K);
+	Mat_ <uchar> upBorder = computeUpBorder(firstSection, DEPTH);
+	Mat_ <uchar> downBorder = computeDownBorder(secondSection, DEPTH);
 
 	/*
 	imshow("UpFirst", upBorder);       // afiseaza sectiunea 1
@@ -413,8 +432,8 @@ double computeUpMatching(Mat_ <uchar> firstSection, Mat_ <uchar> secondSection) 
 }
 
 double computeRightMatching(Mat_ <uchar> firstSection, Mat_ <uchar> secondSection) {
-	Mat_ <uchar> rightBorder = computeRightBorder(firstSection, TEST_K);
-	Mat_ <uchar> leftBorder = computeLeftBorder(secondSection, TEST_K);
+	Mat_ <uchar> rightBorder = computeRightBorder(firstSection, DEPTH);
+	Mat_ <uchar> leftBorder = computeLeftBorder(secondSection, DEPTH);
 
 	/*
 	imshow("RightFirst", rightBorder);       // afiseaza sectiunea 1
@@ -426,8 +445,8 @@ double computeRightMatching(Mat_ <uchar> firstSection, Mat_ <uchar> secondSectio
 }
 
 double computeDownMatching(Mat_ <uchar> firstSection, Mat_ <uchar> secondSection) {
-	Mat_ <uchar> downBorder = computeDownBorder(firstSection, TEST_K);
-	Mat_ <uchar> upBorder = computeUpBorder(secondSection, TEST_K);
+	Mat_ <uchar> downBorder = computeDownBorder(firstSection, DEPTH);
+	Mat_ <uchar> upBorder = computeUpBorder(secondSection, DEPTH);
 
 	/*
 	imshow("DownFirst", downBorder);       // afiseaza sectiunea 1
@@ -439,8 +458,8 @@ double computeDownMatching(Mat_ <uchar> firstSection, Mat_ <uchar> secondSection
 }
 
 double computeLeftMatching(Mat_ <uchar> firstSection, Mat_ <uchar> secondSection) {
-	Mat_ <uchar> leftBorder = computeLeftBorder(firstSection, TEST_K);
-	Mat_ <uchar> rightBorder = computeRightBorder(secondSection, TEST_K);
+	Mat_ <uchar> leftBorder = computeLeftBorder(firstSection, DEPTH);
+	Mat_ <uchar> rightBorder = computeRightBorder(secondSection, DEPTH);
 
 	/*
 	imshow("LeftFirst", leftBorder);       // afiseaza sectiunea 1
@@ -574,28 +593,60 @@ int findBestMatchIndex(int row, int col, int puzzleCols, std::vector<Mat_<uchar>
 	}
 }
 
+void displayPuzzleMatching(int puzzleRows, int puzzleCols, std::vector<Mat_<uchar>> sections) {
+
+	printf("RIGHT MATCHING\n");
+	std::vector<double> rightMatches = {};
+	printf("First piece (TOP-LEFT CORNER) matches:\n");
+	for (int i = 1; i < sections.size(); i++) {
+		double rightMatch = computeRightMatching(sections[0], sections[i]);
+		rightMatches.push_back(rightMatch);
+		printf("With section %d = %f\n", i, rightMatch);
+	}
+	int minRightElementIndex = std::min_element(rightMatches.begin(), rightMatches.end()) - rightMatches.begin() + 1;
+	printf("The picked one is Input[%d]\n\n", minRightElementIndex);
+	
+	sections.erase(sections.begin() + minRightElementIndex);
+
+	printf("DOWN MATCHING\n");
+	std::vector<double> downMatches = {};
+	printf("First piece (TOP-LEFT CORNER) matches:\n");
+	for (int i = 1; i < sections.size(); i++) {
+		double downMatch = computeDownMatching(sections[0], sections[i]);
+		downMatches.push_back(downMatch);
+		int k = i;
+		if (k >= minRightElementIndex) k++;
+		printf("With section %d = %f\n", k, downMatch);
+	}
+	int minDownElementIndex = std::min_element(downMatches.begin(), downMatches.end()) - downMatches.begin() + 2;
+	printf("The picked one is Input[%d]\n\n", minDownElementIndex);
+
+}
+
 void solvePuzzle(int puzzleRows, int puzzleCols, std::vector<Mat_<uchar>> sections) {
+	displayPuzzleMatching(puzzleRows, puzzleCols, sections);
+
 	// solve the puzzle
 	std::vector<Mat_<uchar>> usedSections = { sections[0] }; // pieces that are already fixed in the puzzle solution
 	sections.erase(sections.begin());
 	std::vector<Mat_<uchar>> unusedSections = sections; // pieces that will be tested
 
-	for (int i = 0; i < PUZZLE_ROWS; i++) {
-		for (int j = 0; j < PUZZLE_COLS; j++) {
+	for (int i = 0; i < puzzleRows; i++) {
+		for (int j = 0; j < puzzleCols; j++) {
 
 			// top-left corner piece is fixed, so skip this one
 			if (i == 0 && j == 0) {
 				continue;
 			}
 
-			int bestMatchIndex = findBestMatchIndex(i, j, PUZZLE_COLS, usedSections, unusedSections);
+			int bestMatchIndex = findBestMatchIndex(i, j, puzzleCols, usedSections, unusedSections);
 			usedSections.push_back(unusedSections[bestMatchIndex]);
 			unusedSections.erase(unusedSections.begin() + bestMatchIndex);
 		}
 	}
 
 	// print solution
-	displayPuzzleSolution(PUZZLE_ROWS, PUZZLE_COLS, usedSections);
+	displayPuzzleSolution(puzzleRows, puzzleCols, usedSections);
 	waitKey(0); // asteapta apasarea unei taste
 }
 
@@ -604,7 +655,7 @@ void testPuzzle(){
 	src = imread(fname, IMREAD_GRAYSCALE);
 
 	// computing the input
-	std::vector<Mat_<uchar>> sections = sectionImage(src); // get the pieces of puzzle
+	std::vector<Mat_<uchar>> sections = sectionImage(src, PUZZLE_ROWS, PUZZLE_COLS); // get the pieces of puzzle
  	sections = shuffleSections(sections); // shuffle them
 	displayPuzzleInput(PUZZLE_ROWS, PUZZLE_COLS, sections); // and display them
 
@@ -615,7 +666,7 @@ void testPuzzleMatching() {
 	Mat_<uchar> src; // matricea sursa
 	src = imread(fname, IMREAD_GRAYSCALE);
 
-	std::vector<Mat_<uchar>> sections = sectionImage(src);
+	std::vector<Mat_<uchar>> sections = sectionImage(src, PUZZLE_ROWS, PUZZLE_COLS);
 
 	Mat_ <uchar> firstSection = sections[0];
 	Mat_ <uchar> secondSection = sections[2];
@@ -644,7 +695,7 @@ void multipleCases() {
 	
 	// test on multiple images // NU MERG IMAGINILE PORTRAIT! FOLOSITI NUMA IMAGINI LANDSCAPE (SAU PATRATE)
 	const int SOURCE_COUNT = 3; // 3 test images
-	char* sources[SOURCE_COUNT] = { "Images/cameraman.bmp", "Images/eight.bmp", "Images/saturn.bmp" };
+	char* sources[SOURCE_COUNT] = { "Images/cameraman.bmp", "Images/kids.bmp", "Images/saturn.bmp" };
 	
 	// test on multiple puzzle dimensions
 	const int PUZZLE_ROWS_COUNT = 3; // 3 cases: 1) ROWS = COLS [patrat]; 2) ROWS > COLS [portrait]; 3) ROWS < COLS [landscape]
@@ -667,17 +718,23 @@ void multipleCases() {
 			int puzzleCols = puzzleColsValues[puzzleDimensionIndex];
 
 			// computing the input
-			std::vector<Mat_<uchar>> sections = sectionImage(src); // get the pieces of puzzle
+			std::vector<Mat_<uchar>> sections = sectionImage(src, puzzleRows, puzzleCols); // get the pieces of puzzle
 			sections = shuffleSections(sections); // shuffle them
-			displayPuzzleInput(puzzleRows, puzzleRows, sections); // and display them
+			
+			printf("sections size %d\n", sections.size());
+
+			displayPuzzleInput(puzzleRows, puzzleCols, sections); // and display them
 
 			for (int depthIndex = 0; depthIndex < DEPTH_COUNT; depthIndex++) {
 				// for each depth
-				TEST_K = depths[depthIndex];
+				DEPTH = depths[depthIndex];
 
-				printf("Image: %s, Puzzle: %dx%d, Depth: %d\n", fname, puzzleRows, puzzleCols, TEST_K);
-				
-				solvePuzzle(PUZZLE_ROWS, PUZZLE_COLS, sections);
+				// show info
+				printf("Image: %s, Puzzle: %dx%d, Depth: %d\n", fname, puzzleRows, puzzleCols, DEPTH);
+				// print rmse
+
+
+				solvePuzzle(puzzleRows, puzzleCols, sections);
 			}
 		}
 	}
@@ -706,20 +763,36 @@ void testMultipleCases() {
 		int puzzleCols = 3;
 
 		// computing the input
-		std::vector<Mat_<uchar>> sections = sectionImage(src); // get the pieces of puzzle
+		std::vector<Mat_<uchar>> sections = sectionImage(src, puzzleRows, puzzleCols); // get the pieces of puzzle
 		sections = shuffleSections(sections); // shuffle them
 		displayPuzzleInput(puzzleRows, puzzleRows, sections); // and display them
 
 		for (int depthIndex = 0; depthIndex < DEPTH_COUNT; depthIndex++) {
 			// for each depth
-			TEST_K = depths[depthIndex];
+			DEPTH = depths[depthIndex];
 
 			// show info
-			printf("Image: %s, Puzzle: %dx%d, Depth: %d\n", fname, puzzleRows, puzzleCols, TEST_K);
-
+			printf("Image: %s, Puzzle: %dx%d, Depth: %d\n", fname, puzzleRows, puzzleCols, DEPTH);
 			solvePuzzle(PUZZLE_ROWS, PUZZLE_COLS, sections);
+
 		}
 	}
+}
+
+void testBordersDimension() {
+	Mat_<uchar> src; // matricea sursa
+	src = imread(fname, IMREAD_GRAYSCALE);
+
+	// computing the input
+	std::vector<Mat_<uchar>> sections = sectionImage(src, PUZZLE_ROWS, PUZZLE_COLS); // get the pieces of puzzle
+
+	for (int i = 0; i < sections.size(); i++) {
+
+		printf("Section %d dimension: [%d, %d]\n", i, sections[i].rows, sections[i].cols);
+
+	}
+	imshow("", NULL);
+	waitKey(0);
 }
 
 int main()
@@ -743,6 +816,7 @@ int main()
 		printf(" 21 - Test Puzzle Matching\n");
 		printf(" 22 - Puzzle Comparisons\n");
 		printf(" 23 - Test Puzzle Comparisons\n");
+		printf(" 24 - Test Border Dimensions\n");
 		printf(" 31 - Test Matching Borders\n");
 
 		printf(" 0 - Exit\n\n");
@@ -790,6 +864,9 @@ int main()
 			break;
 		case 23:
 			testMultipleCases();
+			break;
+		case 24:
+			testBordersDimension();
 			break;
 		// IULIA
 		case 31:
