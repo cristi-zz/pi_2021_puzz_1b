@@ -11,13 +11,12 @@
 
 using namespace std;
 
-// variabile globale pe care o sa le folosim pana spre finalul proiectului pt TESTARE
-char fname[MAX_PATH] = "Images/cameraman.bmp";
 const int SECTION_LENGTH = 250;
-// EXPERIMENTAT CU VALORI DIFERITE
+
+char fname[MAX_PATH] = "Images/cameraman.bmp";
+const int PUZZLE_ROWS = 2;
+const int PUZZLE_COLS = 2;
 int DEPTH = 10; 
-int PUZZLE_ROWS = 2; // nu modificati valorile astea doua
-int PUZZLE_COLS = 2; // pana cand nu implementati shuffleSections. (pt ca moemntat e hardcodat pt 3x3)
 
 // USE THIS FUNCTION TO PRINT SECTIONS (it resize them to be bigger)
 void showImage(const char* name, Mat image) {
@@ -26,7 +25,7 @@ void showImage(const char* name, Mat image) {
 	imshow(name, image);
 }
 
-void displayPuzzleInput(int puzzleRows, int puzzleCols, std::vector<Mat_<uchar>> sections) {
+void displayPuzzleInput(std::vector<Mat_<uchar>> sections) {
 	for (int i = 0; i < sections.size(); i++) {
 		string stringSectionName = "Input[" + std::to_string(i) + "]";
 		const char* sectionName = stringSectionName.c_str();
@@ -201,18 +200,8 @@ void testSectionImage() {
 	src = imread(fname, IMREAD_GRAYSCALE);
 
 	std::vector<Mat_<uchar>> sections = sectionImage(src, PUZZLE_ROWS, PUZZLE_COLS);
-	displayPuzzleInput(PUZZLE_ROWS, PUZZLE_COLS, sections);
+	displayPuzzleInput(sections);
 	waitKey(0);
-	/*
-	for (int i = 0; i < PUZZLE_ROWS; i++) {
-		for (int j = 0; j < PUZZLE_COLS; j++) {
-			string stringSectionName = "Input " + std::to_string(i);
-			const char* sectionName = stringSectionName.c_str();
-			showImage(sectionName, images[i]);
-		}	
-	}
-	waitKey(0); // asteapta apasarea unei taste
-	*/
 }
 
 Mat_<uchar> computeUpBorder(Mat_<uchar> src, int k) {
@@ -265,11 +254,8 @@ Mat_<uchar> computeRightBorder(Mat_<uchar> src, int k) {
 }
 
 void testComputeUpBorder() {
-	// partea asta o lasam comentata pana spre finalul proiectului. LUCRAM DOAR PE CAMERAMAN
-	/*
 	char fname[MAX_PATH];
 	openFileDlg(fname);
-	*/
 
 	Mat_<uchar> src; // matricea sursa
 	src = imread(fname, IMREAD_GRAYSCALE);
@@ -283,11 +269,8 @@ void testComputeUpBorder() {
 }
 
 void testComputeRightBorder() {
-	// partea asta o lasam comentata pana spre finalul proiectului. LUCRAM DOAR PE CAMERAMAN
-	/*
 	char fname[MAX_PATH];
 	openFileDlg(fname);
-	*/
 
 	Mat_<uchar> src; // matricea sursa
 	src = imread(fname, IMREAD_GRAYSCALE);
@@ -301,11 +284,8 @@ void testComputeRightBorder() {
 }
 
 void testComputeDownBorder() {
-	// partea asta o lasam comentata pana spre finalul proiectului. LUCRAM DOAR PE CAMERAMAN
-	/*
 	char fname[MAX_PATH];
 	openFileDlg(fname);
-	*/
 
 	Mat_<uchar> src; // matricea sursa
 	src = imread(fname, IMREAD_GRAYSCALE);
@@ -319,12 +299,9 @@ void testComputeDownBorder() {
 }
 
 void testComputeLeftBorder() {
-	// partea asta o lasam comentata pana spre finalul proiectului. LUCRAM DOAR PE CAMERAMAN
-	/*
 	char fname[MAX_PATH];
 	openFileDlg(fname);
-	*/
-
+	
 	Mat_<uchar> src; // matricea sursa
 	src = imread(fname, IMREAD_GRAYSCALE);
 
@@ -336,51 +313,6 @@ void testComputeLeftBorder() {
 	waitKey(0);
 }
 
-void show(Mat_<uchar> img) {
-	for (int i = 0; i < img.rows; i++)
-	{
-		for (int j = 0; j < img.cols; j++)
-		{
-			printf("%d ", img(i, j));
-		}
-		printf("  --  \n");
-	}
-}
-/*
-void testLeftBorder() {
-	Mat_<uchar> img = imread(fname, IMREAD_GRAYSCALE);
-	Mat_<uchar> left = computeLeftBorder(img, 2);
-
-	show(img);
-	show(left);
-}
-
-void testRightBorder() {
-	Mat_<uchar> img = imread(fname, IMREAD_GRAYSCALE);
-	Mat_<uchar> left = computeRightBorder(img, 2);
-
-	show(img);
-	show(left);
-}
-*/
-
-void testMatchingBorders()
-{
-	Mat_<uchar> src; // matricea sursa
-	src = imread(fname, IMREAD_GRAYSCALE);
-
-	std::vector<Mat_<uchar>> sections = sectionImage(src, PUZZLE_ROWS, PUZZLE_COLS);
-
-	Mat_<uchar> img1 = computeRightBorder(sections[0], 40);
-	Mat_<uchar> img2 = computeLeftBorder(sections[1], 40);
-
-	imshow("colt-stanga-sus", img1);
-	imshow("colt-dreapta-sus", img2);
-
-	waitKey(0);
-}
-
-// TODO:
 std::vector<Mat_<uchar>> shuffleSections(std::vector<Mat_<uchar>> sections) {
 	std::vector<Mat_<uchar>> randomSections(sections);
 
@@ -422,24 +354,12 @@ double computeUpMatching(Mat_ <uchar> firstSection, Mat_ <uchar> secondSection) 
 	Mat_ <uchar> upBorder = computeUpBorder(firstSection, DEPTH);
 	Mat_ <uchar> downBorder = computeDownBorder(secondSection, DEPTH);
 
-	/*
-	imshow("UpFirst", upBorder);       // afiseaza sectiunea 1
-	imshow("UpSecond", downBorder);       // afiseaza sectiunea 2
-	//waitKey(0);
-	*/
-
 	return computeRMSE(upBorder, downBorder);
 }
 
 double computeRightMatching(Mat_ <uchar> firstSection, Mat_ <uchar> secondSection) {
 	Mat_ <uchar> rightBorder = computeRightBorder(firstSection, DEPTH);
 	Mat_ <uchar> leftBorder = computeLeftBorder(secondSection, DEPTH);
-
-	/*
-	imshow("RightFirst", rightBorder);       // afiseaza sectiunea 1
-	imshow("RightSecond", leftBorder);       // afiseaza sectiunea 2
-	//waitKey(0);
-	*/
 
 	return computeRMSE(rightBorder, leftBorder);
 }
@@ -448,12 +368,6 @@ double computeDownMatching(Mat_ <uchar> firstSection, Mat_ <uchar> secondSection
 	Mat_ <uchar> downBorder = computeDownBorder(firstSection, DEPTH);
 	Mat_ <uchar> upBorder = computeUpBorder(secondSection, DEPTH);
 
-	/*
-	imshow("DownFirst", downBorder);       // afiseaza sectiunea 1
-	imshow("DownSecond", upBorder);       // afiseaza sectiunea 2
-	//waitKey(0);
-	*/
-
 	return computeRMSE(downBorder, upBorder);
 }
 
@@ -461,52 +375,8 @@ double computeLeftMatching(Mat_ <uchar> firstSection, Mat_ <uchar> secondSection
 	Mat_ <uchar> leftBorder = computeLeftBorder(firstSection, DEPTH);
 	Mat_ <uchar> rightBorder = computeRightBorder(secondSection, DEPTH);
 
-	/*
-	imshow("LeftFirst", leftBorder);       // afiseaza sectiunea 1
-	imshow("LeftSecond", rightBorder);       // afiseaza sectiunea 2
-	//waitKey(0);
-	*/
-
 	return computeRMSE(leftBorder, rightBorder);
 }
-
-double computeScore(std::vector<Mat_<uchar>> sections) {
-	double totalScore = 0;
-	int size = sections.size();
-
-	// sections[0] - FIXAT
-
-	for (int i = 0; i < size - 1; i++) {
-		Mat_<uchar> firstSection = sections[i];
-
-		for (int j = i + 1; j < size; j++) {
-
-			//for each rotation...
-
-			// for each pair of sections
-			Mat_<uchar> secondSection = sections[j];
-			
-			// todo: check Up, Right, Down, Left matching
-
-			double upMatching = computeUpMatching(firstSection, secondSection);
-			double rightMatching = computeRightMatching(firstSection, secondSection);
-			double downMatching = computeDownMatching(firstSection, secondSection);
-			double leftMatching = computeLeftMatching(firstSection, secondSection);
-
-			printf("Between %d and %d:\n", i, j);
-			printf("UP = %f\n", upMatching);
-			printf("RIGHT = %f\n", rightMatching);
-			printf("DOWN = %f\n", downMatching);
-			printf("LEFT = %f\n", leftMatching);
-				
-			printf("\n");
-			//printf("(i = %d, j = %d)\n", i, j);
-
-		}
-	}
-	return totalScore;
-}
-
 
 enum CheckCodes {CHECK_ONLY_LEFT, CHECK_ONLY_UP, CHECK_BOTH};
 int computeCheckCode(int row, int col) {
@@ -594,7 +464,7 @@ int findBestMatchIndex(int row, int col, int puzzleCols, std::vector<Mat_<uchar>
 }
 
 void displayPuzzleMatching(int puzzleRows, int puzzleCols, std::vector<Mat_<uchar>> sections) {
-
+	
 	printf("RIGHT MATCHING\n");
 	std::vector<double> rightMatches = {};
 	printf("First piece (TOP-LEFT CORNER) matches:\n");
@@ -651,18 +521,24 @@ void solvePuzzle(int puzzleRows, int puzzleCols, std::vector<Mat_<uchar>> sectio
 }
 
 void testPuzzle(){
+	char fname[MAX_PATH];
+	openFileDlg(fname);
+
 	Mat_<uchar> src; // matricea sursa
 	src = imread(fname, IMREAD_GRAYSCALE);
 
 	// computing the input
 	std::vector<Mat_<uchar>> sections = sectionImage(src, PUZZLE_ROWS, PUZZLE_COLS); // get the pieces of puzzle
  	sections = shuffleSections(sections); // shuffle them
-	displayPuzzleInput(PUZZLE_ROWS, PUZZLE_COLS, sections); // and display them
+	displayPuzzleInput(sections); // and display them
 
 	solvePuzzle(PUZZLE_ROWS, PUZZLE_COLS, sections);
 }
 
 void testPuzzleMatching() {
+	char fname[MAX_PATH];
+	openFileDlg(fname);
+
 	Mat_<uchar> src; // matricea sursa
 	src = imread(fname, IMREAD_GRAYSCALE);
 
@@ -671,37 +547,29 @@ void testPuzzleMatching() {
 	Mat_ <uchar> firstSection = sections[0];
 	Mat_ <uchar> secondSection = sections[2];
 
-
-
 	double upMatching = computeUpMatching(firstSection, secondSection);
 	double rightMatching = computeRightMatching(firstSection, secondSection);
 	double downMatching = computeDownMatching(firstSection, secondSection);
 	double leftMatching = computeLeftMatching(firstSection, secondSection);
+
 	printf("UP = %f\n", upMatching);
 	printf("RIGHT = %f\n", rightMatching);
 	printf("DOWN = %f\n", downMatching);
 	printf("LEFT = %f\n", leftMatching);
 
-	imshow("Input0", firstSection);       // afiseaza sectiunea 1
-	imshow("Input1", secondSection);       // afiseaza sectiunea 2
+	showImage("Input0", firstSection);       // afiseaza sectiunea 1
+	showImage("Input2", secondSection);       // afiseaza sectiunea 2
 	waitKey(0);
 }
 
 void multipleCases() {
-	// TODO: TEST ON
-	//			multiple images [change src]
-	//			different puzzle dimensions [change puzzleRows/puzzleCols]
-	//			different depths [change test_k]
-	
-	// test on multiple images // NU MERG IMAGINILE PORTRAIT! FOLOSITI NUMA IMAGINI LANDSCAPE (SAU PATRATE)
 	const int SOURCE_COUNT = 3; // 3 test images
 	char* sources[SOURCE_COUNT] = { "Images/cameraman.bmp", "Images/kids.bmp", "Images/saturn.bmp" };
 	
 	// test on multiple puzzle dimensions
-	const int PUZZLE_ROWS_COUNT = 3; // 3 cases: 1) ROWS = COLS [patrat]; 2) ROWS > COLS [portrait]; 3) ROWS < COLS [landscape]
-	const int PUZZLE_COLS_COUNT = 3; // <same here>
-	const int puzzleRowsValues[PUZZLE_ROWS_COUNT] = { 3, 4, 2 };
-	const int puzzleColsValues[PUZZLE_ROWS_COUNT] = { 3, 2, 4 };
+	const int PUZZLE_DIMENSIONS_COUNT = 3; // 3 cases: 1) ROWS = COLS [patrat]; 2) ROWS > COLS [portrait]; 3) ROWS < COLS [landscape]
+	const int puzzleRowsValues[PUZZLE_DIMENSIONS_COUNT] = { 3, 4, 2 };
+	const int puzzleColsValues[PUZZLE_DIMENSIONS_COUNT] = { 3, 2, 4 };
 
 	// test on multiple depths
 	const int DEPTH_COUNT = 3;
@@ -712,7 +580,7 @@ void multipleCases() {
 		char* fname = sources[sourceIndex];
 		Mat_<uchar> src = imread(fname, IMREAD_GRAYSCALE);
 
-		for (int puzzleDimensionIndex = 0; puzzleDimensionIndex < PUZZLE_ROWS_COUNT; puzzleDimensionIndex++) {
+		for (int puzzleDimensionIndex = 0; puzzleDimensionIndex < PUZZLE_DIMENSIONS_COUNT; puzzleDimensionIndex++) {
 			// for each puzzle dimension
 			int puzzleRows = puzzleRowsValues[puzzleDimensionIndex];
 			int puzzleCols = puzzleColsValues[puzzleDimensionIndex];
@@ -720,10 +588,7 @@ void multipleCases() {
 			// computing the input
 			std::vector<Mat_<uchar>> sections = sectionImage(src, puzzleRows, puzzleCols); // get the pieces of puzzle
 			sections = shuffleSections(sections); // shuffle them
-			
-			printf("sections size %d\n", sections.size());
-
-			displayPuzzleInput(puzzleRows, puzzleCols, sections); // and display them
+			displayPuzzleInput(sections); // and display them
 
 			for (int depthIndex = 0; depthIndex < DEPTH_COUNT; depthIndex++) {
 				// for each depth
@@ -731,68 +596,12 @@ void multipleCases() {
 
 				// show info
 				printf("Image: %s, Puzzle: %dx%d, Depth: %d\n", fname, puzzleRows, puzzleCols, DEPTH);
-				// print rmse
-
-
+				
+				// and solve the puzzle for each specific configuration
 				solvePuzzle(puzzleRows, puzzleCols, sections);
 			}
 		}
 	}
-}
-
-void testMultipleCases() {
-	const int SOURCE_COUNT = 3; // 3 test images
-	char* sources[SOURCE_COUNT] = { "Images/cameraman.bmp", "Images/eight.bmp", "Images/saturn.bmp" };
-
-	// test on multiple puzzle dimensions
-	const int PUZZLE_ROWS_COUNT = 3; // 3 cases: 1) ROWS = COLS [patrat]; 2) ROWS > COLS [portrait]; 3) ROWS < COLS [landscape]
-	const int PUZZLE_COLS_COUNT = 3; // <same here>
-	const int puzzleRowsValues[PUZZLE_ROWS_COUNT] = { 3, 4, 2 };
-	const int puzzleColsValues[PUZZLE_ROWS_COUNT] = { 3, 2, 4 };
-
-	// test on multiple depths
-	const int DEPTH_COUNT = 3;
-	const int depths[DEPTH_COUNT] = { 5, 10, 15 };
-
-	for (int sourceIndex = 0; sourceIndex < SOURCE_COUNT; sourceIndex++) {
-		// for each image source
-		char* fname = sources[sourceIndex];
-		Mat_<uchar> src = imread(fname, IMREAD_GRAYSCALE);
-
-		int puzzleRows = 3;
-		int puzzleCols = 3;
-
-		// computing the input
-		std::vector<Mat_<uchar>> sections = sectionImage(src, puzzleRows, puzzleCols); // get the pieces of puzzle
-		sections = shuffleSections(sections); // shuffle them
-		displayPuzzleInput(puzzleRows, puzzleRows, sections); // and display them
-
-		for (int depthIndex = 0; depthIndex < DEPTH_COUNT; depthIndex++) {
-			// for each depth
-			DEPTH = depths[depthIndex];
-
-			// show info
-			printf("Image: %s, Puzzle: %dx%d, Depth: %d\n", fname, puzzleRows, puzzleCols, DEPTH);
-			solvePuzzle(PUZZLE_ROWS, PUZZLE_COLS, sections);
-
-		}
-	}
-}
-
-void testBordersDimension() {
-	Mat_<uchar> src; // matricea sursa
-	src = imread(fname, IMREAD_GRAYSCALE);
-
-	// computing the input
-	std::vector<Mat_<uchar>> sections = sectionImage(src, PUZZLE_ROWS, PUZZLE_COLS); // get the pieces of puzzle
-
-	for (int i = 0; i < sections.size(); i++) {
-
-		printf("Section %d dimension: [%d, %d]\n", i, sections[i].rows, sections[i].cols);
-
-	}
-	imshow("", NULL);
-	waitKey(0);
 }
 
 int main()
@@ -815,10 +624,6 @@ int main()
 		printf(" 20 - Solve Puzzle\n");
 		printf(" 21 - Test Puzzle Matching\n");
 		printf(" 22 - Puzzle Comparisons\n");
-		printf(" 23 - Test Puzzle Comparisons\n");
-		printf(" 24 - Test Border Dimensions\n");
-		printf(" 31 - Test Matching Borders\n");
-
 		printf(" 0 - Exit\n\n");
 		printf("Option: ");
 		scanf("%d", &op);
@@ -851,8 +656,6 @@ int main()
 		case 9:
 			testComputeLeftBorder();
 			break;
-		// ANDREI
-		// SASA
 		case 20:
 			testPuzzle();
 			break;
@@ -862,17 +665,6 @@ int main()
 		case 22:
 			multipleCases();
 			break;
-		case 23:
-			testMultipleCases();
-			break;
-		case 24:
-			testBordersDimension();
-			break;
-		// IULIA
-		case 31:
-			testMatchingBorders();
-			break;
-		// DIANA
 		}
 	} while (op != 0);
 	return 0;
